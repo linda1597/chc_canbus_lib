@@ -1,9 +1,151 @@
 #ifndef _CHC_PROTOCOL_H_
 #define _CHC_PROTOCOL_H_
+#include <Arduino.h>
 
-#ifndef node_HMI
-#define node_HMI 1
+// #define node_HMI
+// #define node_MCU
+#define node_RRU
+// #define node_CWS
+// #define node_NU
+
+/*
+#define rx_HMItoDIAG
+#define rx_MCUtoDIAG
+#define rx_RRUtoDIAG
+#define rx_CWStoDIAG
+#define rx_NUtoDIAG
+
+#define rx_DIAGtoHMI
+#define rx_DIAGtoMCU
+#define rx_DIAGtoRRU
+#define rx_DIAGtoCWS
+#define rx_DIAGtoNU
+
+#define rx_HMI_1
+#define rx_HMI_2
+#define rx_HMI_V
+#define rx_NM_get_INFO
+#define rx_NM_get_CMD
+#define rx_HMItoRRU
+#define rx_HMItoCWS
+
+#define rx_MCU_1
+#define rx_MCU_V
+
+#define rx_RRU_1
+#define rx_RRU_2
+#define rx_RRU_V
+
+#define rx_CWS_1
+#define rx_CWS_V
+
+#define rx_NU_1
+#define rx_NU_2
+#define rx_NU_V
+*/
+
+#ifdef node_HMI
+#define rx_MCUtoDIAG
+#define rx_MCU_1
+#define rx_MCU_V
+
+#define rx_RRUtoDIAG
+#define rx_RRU_1
+#define rx_RRU_2
+#define rx_RRU_V
+
+#define rx_CWStoDIAG
+#define rx_CWS_1
+#define rx_CWS_V
+
+#define rx_NUtoDIAG
+#define rx_NU_2
+#define rx_NU_V
+#define rx_DIAGtoHMI
 #endif
+// ----------------------------------------------------------------
+#ifdef node_MCU
+#define rx_HMI_2
+#define rx_NM_get_INFO
+#define rx_NM_set_CMD
+#define rx_HMI_V
+
+#define rx_RRU_V
+#define rx_CWS_V
+#define rx_NU_V
+#define rx_DIAGtoMCU
+#endif
+// ----------------------------------------------------------------
+#ifdef node_RRU
+#define rx_NM_get_INFO
+#define rx_NM_set_CMD
+#define rx_HMItoRRU
+#define rx_HMI_V
+
+#define rx_MCU_V
+
+#define rx_RRU_V
+
+#define rx_CWS_V
+
+#define rx_NU_V
+#define rx_DIAGtoRRU
+#endif
+// ----------------------------------------------------------------
+#ifdef node_CWS
+#define NM_get_INFO
+#define NM_set_CMD
+#define rx_HMItoCWS
+#define rx_HMI_V
+#define rx_MCU_V
+#define rx_RRU_V
+#define rx_NU_V
+#define rx_DIAGtoCWS
+#endif
+// ----------------------------------------------------------------
+#ifdef node_NU
+#define rx_HMI_1
+#define rx_HMI_2
+#define rx_NM_get_INFO
+#define rx_NM_set_CMD
+#define rx_HMI_V
+#define rx_MCUtoDIAG
+#define rx_MCU_1
+#define rx_MCU_V
+#define rx_RRUtoDIAG
+#define rx_RRU_1
+#define rx_RRU_2
+#define rx_RRU_V
+#define rx_CWStoDIAG
+#define rx_CWS_1
+#define rx_CWS_V
+#define rx_NUtoDIAG
+#define rx_DIAGtoNU
+#endif
+// ----------------------------------------------------------------
+#ifdef node_DIAG
+#define rx_HMItoDIAG
+#define rx_HMI_V
+#define rx_MCUtoDIAG
+#define rx_MCU_V
+#define rx_RRUtoDIAG
+#define rx_RRU_V
+#define rx_CWStoDIAG
+#define rx_CWS_V
+#define rx_NUtoDIAG
+#define rx_NU_V
+#endif
+
+// -- verson ..
+
+#define vCompanyId 1 // 2
+
+#define protocol_Major 1
+#define protocol_Minor 0
+#define sw_Major 1
+#define sw_Minor 0
+#define hw_Major 1
+#define hw_Minor 0
 
 #define DEBUG_CHC_PL_LEVEL 4
 #define DEBUG_CHC_PL_SERIAL Serial
@@ -39,16 +181,19 @@
 class chc_PROTOCOL {
 public:
     chc_PROTOCOL();
-    bool CAN_init();
+    typedef union {
+        float var;
+        uint8_t array[4];
+    } U_float2bytes;
+
     typedef struct
     {
-        uint8_t HMI_V_data[6];
-        uint8_t MCU_V_data[6];
-        uint8_t RRU_V_data[6];
-        uint8_t CWS_V_data[6];
-        uint8_t NU_V_data[6];
-    } S_component_version;
-    S_component_version Rx;
+        uint8_t HMI[6];
+        uint8_t MCU[6];
+        uint8_t RRU[6];
+        uint8_t CWS[6];
+        uint8_t NU[6];
+    } S_VERSION;
 
     typedef struct
     {
@@ -57,8 +202,7 @@ public:
         uint16_t cadence;
         uint16_t velocity;
         uint8_t battery;
-    } S_MCU_data;
-    S_MCU_data mcu_data;
+    } S_MCU_DATA;
 
     typedef struct
     {
@@ -68,15 +212,18 @@ public:
         uint8_t angle;
         uint8_t alarm_status;
         uint8_t light_status;
-    } S_RRU_data;
-    S_RRU_data rru_data;
+
+        uint16_t set_detect_range;
+        uint8_t set_bling_hz;
+    } S_RRU_DATA;
 
     typedef struct
     {
         uint16_t distance;
         uint8_t angle;
-    } S_CWS_data;
-    S_CWS_data cws_data;
+
+        uint16_t set_detect_range;
+    } S_CWS_DATA;
 
     typedef struct
     {
@@ -84,85 +231,164 @@ public:
         float latitude;
         uint16_t altitude;
         uint16_t velocity;
-    } S_NU_data;
-    S_NU_data nu_data;
-    typedef struct {
-        uint8_t HMI_DTC;
-        uint8_t MCU_DTC;
-        uint8_t RRU_DTC;
-        uint8_t CWS_DTC;
-        uint8_t NU_DTC;
-    } S_ALL_DTC;
-    S_ALL_DTC all_dtc;
-#if node_HMI == 1
-    int rx_HMI();
-    void HMItoDIAG(uint8_t error);
-    void HMI_period(uint8_t status, uint8_t HR, uint8_t mode);
-    void HMI_setSupport(uint8_t support);
-    void NM_getInfo(bool getMCUInfo, bool getRRUInfo, bool getCWSInfo, bool getNUInfo);
-    void NM_CMD(bool setMCU, bool setRRU, bool setCWS, bool setNU);
-    void setRRU(uint16_t distance, uint8_t Hz);
-    void setCWS(uint16_t distance);
-    void HMI_version(uint8_t protocol_major, uint8_t protocol_minor, uint8_t sw_major, uint8_t sw_minor, uint8_t hw_major, uint8_t hw_minor);
-#elif node_MCU == 1
-    int rx_MCU();
-    void MCUtoDIAG(uint8_t error);
-    void MCU_period(uint8_t support, uint16_t torque, uint16_t cadence, uint16_t speed, uint8_t battery);
-    void MCU_version(uint8_t protocol_major, uint8_t protocol_minor, uint8_t sw_major, uint8_t sw_minor, uint8_t hw_major, uint8_t hw_minor);
-#elif node_RRU == 1
-    uint16_t detect_range;
-    uint8_t bling_hz;
-    void RRUtoDIAG(uint8_t error);
-    int rx_RRU();
-    void RRU_E(uint8_t id, uint16_t distance, uint16_t speed, uint8_t degree);
-    void RRU_period(uint8_t alarm_status, uint8_t light_status);
-    void RRU_version(uint8_t protocol_major, uint8_t protocol_minor, uint8_t sw_major, uint8_t sw_minor, uint8_t hw_major, uint8_t hw_minor);
-#elif node_CWS == 1
-    uint16_t detect_range;
-    int rx_CWS();
-    void CWStoDIAG(uint8_t error);
-    void CWS_period(uint16_t distance, uint8_t degree);
-    void CWS_version(uint8_t protocol_major, uint8_t protocol_minor, uint8_t sw_major, uint8_t sw_minor, uint8_t hw_major, uint8_t hw_minor);
-#elif node_NU == 1
-    uint16_t detect_range;
+        uint8_t status;
+    } S_NU_DATA;
+    // uint16_t detect_range;
+    // uint8_t bling_hz;
+
     typedef struct {
         uint8_t device_status;
         uint8_t heart_rate;
         uint8_t sport_mode;
-    } S_HMI_data;
-    S_HMI_data hmi_data;
+    } S_HMI_DATA;
+    // S_HMI_data hmi_data;
 
-    typedef union {
-        float var;
-        uint8_t array[4];
-    } U_float2bytes;
+    typedef struct {
+        uint8_t HMI;
+        uint8_t MCU;
+        uint8_t RRU;
+        uint8_t CWS;
+        uint8_t NU;
+    } S_ALL_DTC;
 
-    int rx_NU();
-    void NUtoDIAG(uint8_t error);
-    void NU_period1(float longitude, float latitude);
-    void NU_period2(uint16_t altitude, uint16_t velocity, uint8_t status);
-    void NU_version(uint8_t protocol_major, uint8_t protocol_minor, uint8_t sw_major, uint8_t sw_minor, uint8_t hw_major, uint8_t hw_minor);
+    typedef struct {
+        S_VERSION ver;
+        S_MCU_DATA mcu;
+        S_RRU_DATA rru;
+        S_CWS_DATA cws;
+        S_NU_DATA nu;
+        S_HMI_DATA hmi;
+        S_ALL_DTC dtc;
+    } S_DATA;
+    S_DATA sData;
+
+    typedef enum {
+        NONE = 2,
+        REQ_ERC,
+        REQ_MCU_INFO,
+        REQ_RRU_INFO,
+        REQ_CWS_INFO,
+        REQ_NU_INFO,
+        SET_MCU_AWAKE,
+        SET_MCU_SLEEP,
+        SET_RRU_AWAKE,
+        SET_RRU_SLEEP,
+        SET_RRU_PARAM,
+        SET_CWS_AWAKE,
+        SET_CWS_SLEEP,
+        SET_CWS_PARAM,
+        SET_NU_AWAKE,
+        SET_NU_SLEEP,
+        PROCESS_DONE,
+    } REQ_type;
+
+    REQ_type rx();
+
+#ifdef node_HMI
+    bool HMItoDIAG(uint8_t error);
+
+    bool HMI_period(
+        uint8_t status,
+        uint8_t HR,
+        uint8_t mode);
+
+    bool HMI_setSupport(uint8_t support);
+
+    bool NM_getInfo(
+        bool getMCUInfo,
+        bool getRRUInfo,
+        bool getCWSInfo,
+        bool getNUInfo);
+
+    bool NM_CMD(
+        bool setMCU,
+        bool setRRU,
+        bool setCWS,
+        bool setNU);
+
+    bool setRRU(
+        uint16_t distance,
+        uint8_t Hz);
+
+    bool setCWS(uint16_t distance);
+
+    bool HMI_version(
+        uint8_t protocol_major,
+        uint8_t protocol_minor,
+        uint8_t sw_major,
+        uint8_t sw_minor,
+        uint8_t hw_major,
+        uint8_t hw_minor);
 #endif
-};
 
-enum REQ_type {
-    NONE = 2,
-    REQ_ERC,
-    REQ_MCU_INFO,
-    REQ_RRU_INFO,
-    REQ_CWS_INFO,
-    REQ_NU_INFO,
-    SET_MCU_AWAKE,
-    SET_MCU_SLEEP,
-    SET_RRU_AWAKE,
-    SET_RRU_SLEEP,
-    SET_RRU_PARAM,
-    SET_CWS_AWAKE,
-    SET_CWS_SLEEP,
-    SET_CWS_PARAM,
-    SET_NU_AWAKE,
-    SET_NU_SLEEP,
-    PROCESS_DONE,
+#ifdef node_MCU
+    bool MCUtoDIAG(uint8_t error);
+    bool MCU_period(
+        uint8_t support,
+        uint16_t torque,
+        uint16_t cadence,
+        uint16_t speed,
+        uint8_t battery);
+    bool MCU_version(
+        uint8_t protocol_major,
+        uint8_t protocol_minor,
+        uint8_t sw_major,
+        uint8_t sw_minor,
+        uint8_t hw_major,
+        uint8_t hw_minor);
+#endif
+
+#ifdef node_RRU
+    bool RRUtoDIAG(uint8_t error);
+    bool RRU_E(
+        uint8_t id,
+        uint16_t distance,
+        uint16_t speed,
+        uint8_t degree);
+    bool RRU_period(
+        uint8_t alarm_status,
+        uint8_t light_status);
+    bool RRU_version(
+        uint8_t protocol_major,
+        uint8_t protocol_minor,
+        uint8_t sw_major,
+        uint8_t sw_minor,
+        uint8_t hw_major,
+        uint8_t hw_minor);
+#endif
+
+#ifdef node_CWS
+    bool CWStoDIAG(uint8_t error);
+    bool CWS_period(
+        uint16_t distance,
+        uint8_t degree);
+    bool CWS_version(
+        uint8_t protocol_major,
+        uint8_t protocol_minor,
+        uint8_t sw_major,
+        uint8_t sw_minor,
+        uint8_t hw_major,
+        uint8_t hw_minor);
+#endif
+
+#ifdef node_NU
+
+    bool NUtoDIAG(uint8_t error);
+    bool NU_period1(
+        float longitude,
+        float latitude);
+    bool NU_period2(
+        uint16_t altitude,
+        uint16_t velocity,
+        uint8_t status);
+    bool NU_version(
+        uint8_t protocol_major,
+        uint8_t protocol_minor,
+        uint8_t sw_major,
+        uint8_t sw_minor,
+        uint8_t hw_major,
+        uint8_t hw_minor);
+#endif
 };
 
 enum CAN_ID {
