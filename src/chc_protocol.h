@@ -4,7 +4,7 @@
 
 // #define node_HMI
 // #define node_MCU
-#define node_RRU
+// #define node_RRU
 // #define node_CWS
 // #define node_NU
 
@@ -138,7 +138,7 @@
 
 // -- verson ..
 
-#define vCompanyId 1 // 2
+// #define vCompanyId 1 // 2
 
 #define protocol_Major 1
 #define protocol_Minor 0
@@ -178,13 +178,49 @@
 #define CHC_PL_LOG_V(fmt, ...) ;
 #endif
 
-class chc_PROTOCOL {
+class CHC_PROTOCOL {
 public:
-    chc_PROTOCOL();
+    CHC_PROTOCOL();
     typedef union {
         float var;
         uint8_t array[4];
     } U_float2bytes;
+
+    enum CAN_ID {
+        // DIAG ID
+        DIAGtoHMI = 0x772,
+        DIAGtoMCU = 0x774,
+        DIAGtoRRU = 0x775,
+        DIAGtoCWS = 0x776,
+        DIAGtoNU = 0x777,
+        // HMI ID
+        HMI_DIAG = 0x130,
+        HMI_ID1 = 0x140,
+        HMI_ID2 = 0x141,
+        NM_get_info = 0x14B,
+        NM_set_CMD = 0x14C,
+        HMItoRRU = 0x14D,
+        HMItoCWS = 0x14E,
+        HMI_V = 0x14F,
+        // MCU ID
+        MCU_DIAG = 0x150,
+        MCU_ID1 = 0x160,
+        MCU_V = 0x16F,
+        // RRU ID
+        RRU_DIAG = 0x190,
+        RRU_ID1 = 0x1A0,
+        RRU_ID2 = 0x1A1,
+        RRU_V = 0x1AF,
+        // CWS ID
+        CWS_DIAG = 0x1B0,
+        CWS_ID1 = 0x1C0,
+        CWS_V = 0x1CF,
+        // NU ID
+        NU_DIAG = 0x1D0,
+        NU_ID1 = 0x1E0,
+        NU_ID2 = 0x1E1,
+        NU_V = 0x1EF
+    };
 
     typedef struct
     {
@@ -233,15 +269,12 @@ public:
         uint16_t velocity;
         uint8_t status;
     } S_NU_DATA;
-    // uint16_t detect_range;
-    // uint8_t bling_hz;
 
     typedef struct {
         uint8_t device_status;
         uint8_t heart_rate;
         uint8_t sport_mode;
     } S_HMI_DATA;
-    // S_HMI_data hmi_data;
 
     typedef struct {
         uint8_t HMI;
@@ -260,6 +293,7 @@ public:
         S_HMI_DATA hmi;
         S_ALL_DTC dtc;
     } S_DATA;
+
     S_DATA sData;
 
     typedef enum {
@@ -390,41 +424,6 @@ public:
         uint8_t hw_minor);
 #endif
 };
-
-enum CAN_ID {
-    // DIAG ID
-    DIAGtoHMI = 0x772,
-    DIAGtoMCU = 0x774,
-    DIAGtoRRU = 0x775,
-    DIAGtoCWS = 0x776,
-    DIAGtoNU = 0x777,
-    // HMI ID
-    HMI_DIAG = 0x130,
-    HMI_ID1 = 0x140,
-    HMI_ID2 = 0x141,
-    NM_get_info = 0x14B,
-    NM_set_CMD = 0x14C,
-    HMItoRRU = 0x14D,
-    HMItoCWS = 0x14E,
-    HMI_V = 0x14F,
-    // MCU ID
-    MCU_DIAG = 0x150,
-    MCU_ID1 = 0x160,
-    MCU_V = 0x16F,
-    // RRU ID
-    RRU_DIAG = 0x190,
-    RRU_ID1 = 0x1A0,
-    RRU_ID2 = 0x1A1,
-    RRU_V = 0x1AF,
-    // CWS ID
-    CWS_DIAG = 0x1B0,
-    CWS_ID1 = 0x1C0,
-    CWS_V = 0x1CF,
-    // NU ID
-    NU_DIAG = 0x1D0,
-    NU_ID1 = 0x1E0,
-    NU_ID2 = 0x1E1,
-    NU_V = 0x1EF
-};
+extern CHC_PROTOCOL chcProtocol;
 
 #endif

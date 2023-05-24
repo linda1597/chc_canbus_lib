@@ -14,7 +14,11 @@
 bool CAN_base_init(int pinCanRx, int pinCanTx)
 {
 #ifdef CAN_lib_1
-    twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT((num_), GPIO_NUM_45, TWAI_MODE_NORMAL); // TWAI_MODE_NORMAL, TWAI_MODE_NO_ACK or TWAI_MODE_LISTEN_ONLY
+    twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(
+        (gpio_num_t)pinCanRx,
+        (gpio_num_t)pinCanTx,
+        TWAI_MODE_NORMAL); // TWAI_MODE_NORMAL, TWAI_MODE_NO_ACK or TWAI_MODE_LISTEN_ONLY
+
     twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
@@ -53,7 +57,7 @@ bool CAN_base_init(int pinCanRx, int pinCanTx)
 bool CAN_base_transmit(CAN_frame_t* CANFrame)
 {
 #ifdef CAN_lib_1
-    esp_err_t err = twai_transmit(CANFrame, 0);
+    esp_err_t err = twai_transmit((twai_message_t*)CANFrame, 0);
     if (err == ESP_OK) {
         CAN_LOG_I("Message queued for transmission");
     } else {
