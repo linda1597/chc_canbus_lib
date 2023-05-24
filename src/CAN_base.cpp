@@ -22,7 +22,7 @@ bool CAN_base_init(int pinCanRx, int pinCanTx)
     twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
-    err = twai_driver_install(&g_config, &t_config, &f_config);
+    esp_err_t err = twai_driver_install(&g_config, &t_config, &f_config);
     if (err == ESP_OK) {
         CAN_LOG_I("Driver installed");
     } else {
@@ -91,7 +91,7 @@ bool CAN_base_transmit(CAN_frame_t* CANFrame)
 bool CAN_base_receive(CAN_frame_t* CANFrame, long timeout_ms)
 {
 #ifdef CAN_lib_1
-    esp_err_t err = twai_receive(CANFrame, timeout_ms);
+    esp_err_t err = twai_receive((twai_message_t*)CANFrame, timeout_ms);
     if (err == ESP_OK) {
         CAN_LOG_I("Message received");
     } else if (err == ESP_ERR_TIMEOUT) {
