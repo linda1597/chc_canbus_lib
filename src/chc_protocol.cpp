@@ -32,31 +32,36 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_DIAGtoHMI
     case CHC_PROTOCOL::DIAGtoHMI: // = 0x772,
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_DIAG;
         break;
 #endif
 // ----------------------------------------------------------------
 #ifdef rx_DIAGtoMCU
     case CHC_PROTOCOL::DIAGtoMCU: // = 0x774,
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_DIAG;
         break;
 #endif
 // ----------------------------------------------------------------
 #ifdef rx_DIAGtoRRU
     case CHC_PROTOCOL::DIAGtoRRU: // = 0x775,
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_DIAG;
         break;
 #endif
 // ----------------------------------------------------------------
 #ifdef rx_DIAGtoCWS
     case CHC_PROTOCOL::DIAGtoCWS: // = 0x776,
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_DIAG;
         break;
 #endif
 // ----------------------------------------------------------------
 #ifdef rx_DIAGtoNU
     case CHC_PROTOCOL::DIAGtoNU: // = 0x777,
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_DIAG;
         break;
 #endif
 // HMI ID
@@ -65,15 +70,16 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
     case CHC_PROTOCOL::HMI_DIAG: // = 0x130,
                                  // all_dtc.HMI_DTC = rx_msg.data[0];
         sData.dtc.HMI = rx_msg.data[0];
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_HMI;
         break;
 #endif
 
 // ----------------------------------------------------------------
 #ifdef rx_HMI_1
     case CHC_PROTOCOL::HMI_ID1: // = 0x140,
-        sData.hmi.device_status = rx_msg.data[0];
-        sData.hmi.heart_rate = rx_msg.data[1];
+        sData.hmi.hr_status = rx_msg.data[0];
+        sData.hmi.hr_value = rx_msg.data[1];
         sData.hmi.sport_mode = rx_msg.data[2];
         return PROCESS_DONE;
         break;
@@ -196,14 +202,16 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
     case CHC_PROTOCOL::HMItoRRU: // = 0x14D,
         sData.rru.set_detect_range = rx_msg.data[0] | (rx_msg.data[1] << 8);
         sData.rru.set_bling_hz = rx_msg.data[2];
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_HMI;
         break;
 #endif
 // ----------------------------------------------------------------
 #ifdef rx_HMItoCWS
     case CHC_PROTOCOL::HMItoCWS: // = 0x14E,
         sData.cws.set_detect_range = rx_msg.data[0] | (rx_msg.data[1] << 8);
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_HMI;
         break;
 #endif
 // ----------------------------------------------------------------
@@ -212,7 +220,8 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
         for (uint8_t i = 0; i < 6; i++) {
             sData.ver.HMI[i] = rx_msg.data[i];
         }
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_HMI;
         break;
 #endif
 // MCU ID
@@ -220,19 +229,21 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef rx_MCUtoDIAG
     case CHC_PROTOCOL::MCU_DIAG: // = 0x150,
         sData.dtc.MCU = rx_msg.data[0];
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_MCU;
         break;
 #endif
 // ----------------------------------------------------------------
 #ifdef rx_MCU_1
     case CHC_PROTOCOL::MCU_ID1: // = 0x160,
-        sData.mcu.gear = rx_msg.data[0];
+        sData.mcu.assist = rx_msg.data[0];
         sData.mcu.torque = rx_msg.data[1] | (rx_msg.data[2] << 8);
         sData.mcu.cadence = rx_msg.data[3] | (rx_msg.data[4] << 8);
-        sData.mcu.velocity = rx_msg.data[5] | (rx_msg.data[6] << 8);
+        sData.mcu.speed = rx_msg.data[5] | (rx_msg.data[6] << 8);
         sData.mcu.battery = rx_msg.data[7];
 
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_MCU;
         break;
 #endif
 // ----------------------------------------------------------------
@@ -241,7 +252,8 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
         for (uint8_t i = 0; i < 6; i++) {
             sData.ver.MCU[i] = rx_msg.data[i];
         }
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_MCU;
         break;
 #endif
 // RRU ID
@@ -249,7 +261,8 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef rx_RRUtoDIAG
     case CHC_PROTOCOL::RRU_DIAG: // = 0x190,
         sData.dtc.RRU = rx_msg.data[0];
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_RRU;
         break;
 #endif
 // ----------------------------------------------------------------
@@ -257,23 +270,25 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
     case CHC_PROTOCOL::RRU_ID1: // = 0x1A0,
         // rru_data.ID = rx_msg.data[0];
         // rru_data.distance = rx_msg.data[1] | (rx_msg.data[2] << 8);
-        // rru_data.velocity = rx_msg.data[3] | (rx_msg.data[4] << 8);
+        // rru_data.speed = rx_msg.data[3] | (rx_msg.data[4] << 8);
         // rru_data.angle = rx_msg.data[5];
-        sData.rru.ID = rx_msg.data[0];
+        sData.rru.id = rx_msg.data[0];
         sData.rru.distance = rx_msg.data[1] | (rx_msg.data[2] << 8);
-        sData.rru.velocity = rx_msg.data[3] | (rx_msg.data[4] << 8);
+        sData.rru.speed = rx_msg.data[3] | (rx_msg.data[4] << 8);
         sData.rru.angle = rx_msg.data[5];
 
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_RRU;
         break;
 #endif
 // ----------------------------------------------------------------
 #ifdef rx_RRU_2
     case CHC_PROTOCOL::RRU_ID2: // = 0x1A1,
-        sData.rru.alarm_status = rx_msg.data[0];
-        sData.rru.light_status = rx_msg.data[1];
+        sData.rru.status_alarm = rx_msg.data[0];
+        sData.rru.status_light = rx_msg.data[1];
 
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_RRU;
         break;
 #endif
 // ----------------------------------------------------------------
@@ -282,7 +297,8 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
         for (uint8_t i = 0; i < 6; i++) {
             sData.ver.RRU[i] = rx_msg.data[i];
         }
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_RRU;
         break;
 #endif
 // CWS ID
@@ -290,7 +306,8 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef rx_CWStoDIAG
     case CHC_PROTOCOL::CWS_DIAG: // = 0x1B0,
         sData.dtc.CWS = rx_msg.data[0];
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_CWS;
         break;
 #endif
 // ----------------------------------------------------------------
@@ -299,7 +316,8 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
         sData.cws.distance = rx_msg.data[0] | (rx_msg.data[1] << 8);
         sData.cws.angle = rx_msg.data[2];
 
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_CWS;
         break;
 #endif
 // ----------------------------------------------------------------
@@ -308,7 +326,8 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
         for (uint8_t i = 0; i < 6; i++) {
             sData.ver.CWS[i] = rx_msg.data[i];
         }
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_CWS;
         break;
 #endif
 // NU ID
@@ -316,7 +335,8 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef rx_NUtoDIAG
     case CHC_PROTOCOL::NU_DIAG: // = 0x1D0,
         sData.dtc.NU = rx_msg.data[0];
-        return PROCESS_DONE;
+        return GET_NU;
+        // return PROCESS_DONE;
         break;
 #endif
 // ----------------------------------------------------------------
@@ -325,16 +345,18 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
         sData.nu.longitude = rx_msg.data[0] | (rx_msg.data[1] << 8) | (rx_msg.data[2] << 16) | (rx_msg.data[3] << 24);
         sData.nu.latitude = rx_msg.data[4] | (rx_msg.data[5] << 8) | (rx_msg.data[6] << 16) | (rx_msg.data[7] << 24);
 
-        return PROCESS_DONE;
+        return GET_NU;
+        // return PROCESS_DONE;
         break;
 #endif
 // ----------------------------------------------------------------
 #ifdef rx_NU_2
     case CHC_PROTOCOL::NU_ID2: // = 0x1E1,
         sData.nu.altitude = rx_msg.data[0] | (rx_msg.data[1] << 8);
-        sData.nu.velocity = rx_msg.data[2] | (rx_msg.data[3] << 8);
+        sData.nu.speed = rx_msg.data[2] | (rx_msg.data[3] << 8);
 
-        return PROCESS_DONE;
+        return GET_NU;
+        // return PROCESS_DONE;
         break;
 #endif
 // ----------------------------------------------------------------
@@ -343,15 +365,16 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
         for (uint8_t i = 0; i < 6; i++) {
             sData.ver.NU[i] = rx_msg.data[i];
         }
-        return PROCESS_DONE;
+        return GET_NU;
+        // return PROCESS_DONE;
         break;
 #endif
         // ----------------------------------------------------------------
     default:
-        return NONE;
+        return PROCESS_DONE;
         break;
     }
-    return NONE;
+    return PROCESS_DONE;
 }
 #ifdef node_HMI
 // 診斷碼
@@ -590,15 +613,15 @@ bool CHC_PROTOCOL::RRU_E(
            2:閃爍
 */
 bool CHC_PROTOCOL::RRU_period(
-    uint8_t alarm_status,
-    uint8_t light_status)
+    uint8_t status_alarm,
+    uint8_t status_light)
 {
     tx_msg.identifier = RRU_ID2;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 2;
-    tx_msg.data[0] = alarm_status;
-    tx_msg.data[1] = light_status;
+    tx_msg.data[0] = status_alarm;
+    tx_msg.data[1] = status_light;
     return CAN_base_transmit(&tx_msg);
 }
 
@@ -715,7 +738,7 @@ bool CHC_PROTOCOL::NU_period1(
 // 海拔、速度、模組連網狀態
 bool CHC_PROTOCOL::NU_period2(
     uint16_t altitude,
-    uint16_t velocity,
+    uint16_t speed,
     uint8_t status)
 {
     tx_msg.identifier = NU_ID2;
@@ -724,8 +747,8 @@ bool CHC_PROTOCOL::NU_period2(
     tx_msg.data_length_code = 5;
     tx_msg.data[0] = (uint8_t)altitude;
     tx_msg.data[1] = (uint8_t)altitude >> 8;
-    tx_msg.data[2] = (uint8_t)velocity;
-    tx_msg.data[3] = (uint8_t)velocity >> 8;
+    tx_msg.data[2] = (uint8_t)speed;
+    tx_msg.data[3] = (uint8_t)speed >> 8;
     tx_msg.data[4] = status;
     return CAN_base_transmit(&tx_msg);
 }

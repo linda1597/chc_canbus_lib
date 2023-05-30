@@ -1,6 +1,7 @@
 #ifndef _CHC_PROTOCOL_H_
 #define _CHC_PROTOCOL_H_
 #include <Arduino.h>
+#include <CAN_base.h>
 
 // #define node_HMI
 // #define node_MCU
@@ -233,21 +234,21 @@ public:
 
     typedef struct
     {
-        uint8_t gear;
+        uint8_t assist;
         uint16_t torque;
         uint16_t cadence;
-        uint16_t velocity;
+        uint16_t speed;
         uint8_t battery;
     } S_MCU_DATA;
 
     typedef struct
     {
-        uint8_t ID;
+        uint8_t id;
         uint16_t distance;
-        uint16_t velocity;
-        uint8_t angle;
-        uint8_t alarm_status;
-        uint8_t light_status;
+        uint16_t speed;
+        int8_t angle;
+        uint8_t status_alarm;
+        uint8_t status_light;
 
         uint16_t set_detect_range;
         uint8_t set_bling_hz;
@@ -256,7 +257,7 @@ public:
     typedef struct
     {
         uint16_t distance;
-        uint8_t angle;
+        int8_t angle;
 
         uint16_t set_detect_range;
     } S_CWS_DATA;
@@ -266,13 +267,13 @@ public:
         float longitude;
         float latitude;
         uint16_t altitude;
-        uint16_t velocity;
+        uint16_t speed;
         uint8_t status;
     } S_NU_DATA;
 
     typedef struct {
-        uint8_t device_status;
-        uint8_t heart_rate;
+        uint8_t hr_status;
+        uint8_t hr_value;
         uint8_t sport_mode;
     } S_HMI_DATA;
 
@@ -314,6 +315,12 @@ public:
         SET_NU_AWAKE,
         SET_NU_SLEEP,
         PROCESS_DONE,
+        GET_HMI,
+        GET_MCU,
+        GET_RRU,
+        GET_CWS,
+        GET_NU,
+        GET_DIAG,
     } REQ_type;
 
     REQ_type rx();
@@ -322,9 +329,9 @@ public:
     bool HMItoDIAG(uint8_t error);
 
     bool HMI_period(
-        uint8_t status,
-        uint8_t HR,
-        uint8_t mode);
+        uint8_t hr_status,
+        uint8_t hr_value,
+        uint8_t sport_mode);
 
     bool HMI_setSupport(uint8_t support);
 
@@ -358,7 +365,7 @@ public:
 #ifdef node_MCU
     bool MCUtoDIAG(uint8_t error);
     bool MCU_period(
-        uint8_t support,
+        uint8_t assist,
         uint16_t torque,
         uint16_t cadence,
         uint16_t speed,
@@ -413,7 +420,7 @@ public:
         float latitude);
     bool NU_period2(
         uint16_t altitude,
-        uint16_t velocity,
+        uint16_t speed,
         uint8_t status);
     bool NU_version(
         uint8_t protocol_major,
@@ -424,6 +431,8 @@ public:
         uint8_t hw_minor);
 #endif
 };
+
+extern CAN_frame_t rx_msg;
 extern CHC_PROTOCOL chcProtocol;
 
 #endif
