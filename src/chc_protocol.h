@@ -333,7 +333,7 @@ public:
         uint8_t hr_value,
         uint8_t sport_mode);
 
-    bool HMI_setSupport(uint8_t support);
+    bool MCU_setAssist(uint8_t u8Assist);
 
     bool NM_getInfo(
         bool getMCUInfo,
@@ -347,11 +347,13 @@ public:
         bool setCWS,
         bool setNU);
 
-    bool setRRU(
+    bool RRU_setParam(
         uint16_t distance,
         uint8_t Hz);
 
-    bool setCWS(uint16_t distance);
+    bool CWS_setParam(
+        uint16_t u16Distance,
+        uint8_t u8Range);
 
     bool HMI_version(
         uint8_t protocol_major,

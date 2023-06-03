@@ -35,7 +35,7 @@
 #endif
 // -------------------------------------------------
 // #define CAN_lib_1 // for ESP32 twai lib
-#define CAN_lib_2 // for https://github.com/sandeepmistry/arduino-CAN.git
+// #define CAN_lib_2 // for https://github.com/sandeepmistry/arduino-CAN.git
 
 #define vCANbus_baudrate 500000
 typedef enum {

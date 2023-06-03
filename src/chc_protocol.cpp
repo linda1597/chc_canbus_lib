@@ -404,13 +404,13 @@ bool CHC_PROTOCOL::HMI_period(
 }
 
 // 設定輔助力
-bool CHC_PROTOCOL::HMI_setSupport(uint8_t support)
+bool CHC_PROTOCOL::MCU_setAssist(uint8_t u8Assist)
 {
     tx_msg.identifier = HMI_ID2;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 1;
-    tx_msg.data[0] = support;
+    tx_msg.data[0] = u8Assist;
     return CAN_base_transmit(&tx_msg);
 }
 
@@ -467,7 +467,7 @@ bool CHC_PROTOCOL::NM_CMD(
 }
 
 // 設定RRU警示距離、警示LED閃爍頻率
-bool CHC_PROTOCOL::setRRU(
+bool CHC_PROTOCOL::RRU_setParam(
     uint16_t distance,
     uint8_t Hz)
 {
@@ -482,14 +482,17 @@ bool CHC_PROTOCOL::setRRU(
 }
 
 // 設定CWS警示距離
-bool CHC_PROTOCOL::setCWS(uint16_t distance)
+bool CHC_PROTOCOL::CWS_setParam(
+    uint16_t u16Distance,
+    uint8_t u8Range)
 {
     tx_msg.identifier = HMItoCWS;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
-    tx_msg.data_length_code = 2;
-    tx_msg.data[0] = distance;
-    tx_msg.data[1] = distance >> 8;
+    tx_msg.data_length_code = 3;
+    tx_msg.data[0] = u16Distance;
+    tx_msg.data[1] = u16Distance >> 8;
+    tx_msg.data[2] = u8Range;
     return CAN_base_transmit(&tx_msg);
 }
 
