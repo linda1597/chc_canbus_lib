@@ -247,7 +247,8 @@ public:
         uint16_t distance;
         uint16_t speed;
         int8_t angle;
-        uint8_t status_alarm;
+        uint8_t status_alarm_L;
+        uint8_t status_alarm_R;
         uint8_t status_light;
 
         uint16_t set_detect_range;
@@ -389,7 +390,8 @@ public:
         uint16_t speed,
         uint8_t degree);
     bool RRU_period(
-        uint8_t alarm_status,
+        uint8_t alarm_status_L,
+        uint8_t alarm_status_R,
         uint8_t light_status);
     bool RRU_version(
         uint8_t protocol_major,

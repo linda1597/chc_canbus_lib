@@ -284,8 +284,9 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_RRU_2
     case CHC_PROTOCOL::RRU_ID2: // = 0x1A1,
-        sData.rru.status_alarm = rx_msg.data[0];
-        sData.rru.status_light = rx_msg.data[1];
+        sData.rru.status_alarm_L = rx_msg.data[0];
+        sData.rru.status_alarm_R = rx_msg.data[1];
+        sData.rru.status_light = rx_msg.data[2];
 
         // return PROCESS_DONE;
         return GET_RRU;
@@ -616,15 +617,17 @@ bool CHC_PROTOCOL::RRU_E(
            2:閃爍
 */
 bool CHC_PROTOCOL::RRU_period(
-    uint8_t status_alarm,
+    uint8_t status_alarm_L,
+    uint8_t status_alarm_R,
     uint8_t status_light)
 {
     tx_msg.identifier = RRU_ID2;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 2;
-    tx_msg.data[0] = status_alarm;
-    tx_msg.data[1] = status_light;
+    tx_msg.data[0] = status_alarm_L;
+    tx_msg.data[1] = status_alarm_R;
+    tx_msg.data[2] = status_light;
     return CAN_base_transmit(&tx_msg);
 }
 
