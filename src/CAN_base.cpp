@@ -15,8 +15,8 @@ bool CAN_base_init(int pinCanRx, int pinCanTx)
 {
 #ifdef CAN_lib_1
     twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(
-        (gpio_num_t)pinCanRx,
         (gpio_num_t)pinCanTx,
+        (gpio_num_t)pinCanRx,
         TWAI_MODE_NORMAL); // TWAI_MODE_NORMAL, TWAI_MODE_NO_ACK or TWAI_MODE_LISTEN_ONLY
 
     twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
