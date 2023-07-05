@@ -388,19 +388,24 @@ bool CHC_PROTOCOL::HMItoDIAG(uint8_t error)
     tx_msg.data[0] = error;
     return CAN_base_transmit(&tx_msg);
 }
-
+/**
+ * @brief 傳送心跳裝置連線狀態、心跳、運動模式
+ * @param hr_status 心跳裝置連線狀態
+ * @param hr_value 心跳
+ * @param sport_mode 運動模式，0：休閒，1：運動，2：訓練
+*/
 bool CHC_PROTOCOL::HMI_period(
-    uint8_t status,
-    uint8_t HR,
-    uint8_t mode)
+    uint8_t hr_status,
+    uint8_t hr_value,
+    uint8_t sport_mode)
 {
     tx_msg.identifier = HMI_ID1;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 3;
-    tx_msg.data[0] = status;
-    tx_msg.data[1] = HR;
-    tx_msg.data[2] = mode;
+    tx_msg.data[0] = hr_status;
+    tx_msg.data[1] = hr_value;
+    tx_msg.data[2] = sport_mode;
     return CAN_base_transmit(&tx_msg);
 }
 
