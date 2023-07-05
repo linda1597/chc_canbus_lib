@@ -624,7 +624,7 @@ bool CHC_PROTOCOL::RRU_period(
     tx_msg.identifier = RRU_ID2;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
-    tx_msg.data_length_code = 2;
+    tx_msg.data_length_code = 3;
     tx_msg.data[0] = status_alarm_L;
     tx_msg.data[1] = status_alarm_R;
     tx_msg.data[2] = status_light;
