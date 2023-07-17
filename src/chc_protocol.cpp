@@ -17,7 +17,7 @@ CHC_PROTOCOL::CHC_PROTOCOL()
 }
 CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 {
-    if (CAN_base_receive(&rx_msg, 500) == false) {
+    if (CAN_base_receive(&rx_msg, 70) == false) {
         return NONE;
     }
     CHC_PL_LOG("Received:");
