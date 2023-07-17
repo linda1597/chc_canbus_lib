@@ -284,8 +284,9 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_RRU_2
     case CHC_PROTOCOL::RRU_ID2: // = 0x1A1,
-        sData.rru.status_alarm = rx_msg.data[0];
-        sData.rru.status_light = rx_msg.data[1];
+        sData.rru.status_alarm_L = rx_msg.data[0];
+        sData.rru.status_alarm_R = rx_msg.data[1];
+        sData.rru.status_light = rx_msg.data[2];
 
         // return PROCESS_DONE;
         return GET_RRU;
@@ -387,19 +388,24 @@ bool CHC_PROTOCOL::HMItoDIAG(uint8_t error)
     tx_msg.data[0] = error;
     return CAN_base_transmit(&tx_msg);
 }
-
+/**
+ * @brief 傳送心跳裝置連線狀態、心跳、運動模式
+ * @param hr_status 心跳裝置連線狀態
+ * @param hr_value 心跳
+ * @param sport_mode 運動模式，0：休閒，1：運動，2：訓練
+*/
 bool CHC_PROTOCOL::HMI_period(
-    uint8_t status,
-    uint8_t HR,
-    uint8_t mode)
+    uint8_t hr_status,
+    uint8_t hr_value,
+    uint8_t sport_mode)
 {
     tx_msg.identifier = HMI_ID1;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 3;
-    tx_msg.data[0] = status;
-    tx_msg.data[1] = HR;
-    tx_msg.data[2] = mode;
+    tx_msg.data[0] = hr_status;
+    tx_msg.data[1] = hr_value;
+    tx_msg.data[2] = sport_mode;
     return CAN_base_transmit(&tx_msg);
 }
 
@@ -616,15 +622,17 @@ bool CHC_PROTOCOL::RRU_E(
            2:閃爍
 */
 bool CHC_PROTOCOL::RRU_period(
-    uint8_t status_alarm,
+    uint8_t status_alarm_L,
+    uint8_t status_alarm_R,
     uint8_t status_light)
 {
     tx_msg.identifier = RRU_ID2;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
-    tx_msg.data_length_code = 2;
-    tx_msg.data[0] = status_alarm;
-    tx_msg.data[1] = status_light;
+    tx_msg.data_length_code = 3;
+    tx_msg.data[0] = status_alarm_L;
+    tx_msg.data[1] = status_alarm_R;
+    tx_msg.data[2] = status_light;
     return CAN_base_transmit(&tx_msg);
 }
 
