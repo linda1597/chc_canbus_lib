@@ -257,8 +257,12 @@ public:
 
     typedef struct
     {
+        // uint16_t distance;
+        // int8_t angle;
+        uint16_t location;
+        uint16_t size;
         uint16_t distance;
-        int8_t angle;
+        int8_t type;
 
         uint16_t set_detect_range;
     } S_CWS_DATA;

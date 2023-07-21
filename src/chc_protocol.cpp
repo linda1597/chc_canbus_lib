@@ -20,11 +20,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
     if (CAN_base_receive(&rx_msg, 500) == false) {
         return NONE;
     }
-    CHC_PL_LOG("Received:");
-    for (uint8_t i = 0; i < rx_msg.data_length_code; i++) {
-        CHC_PL_LOG_S("%02X ", rx_msg.data[i]);
-    }
-    CHC_PL_LOG_S("\n");
+    // CHC_PL_LOG("Received:");
+    // for (uint8_t i = 0; i < rx_msg.data_length_code; i++) {
+    //     CHC_PL_LOG_S("%02X ", rx_msg.data[i]);
+    // }
+    // CHC_PL_LOG_S("\n");
     // ----------------- 以下為接收到的資料 -----------------
     switch (rx_msg.identifier) {
 
@@ -314,8 +314,12 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_CWS_1
     case CHC_PROTOCOL::CWS_ID1: // = 0x1C0,
-        sData.cws.distance = rx_msg.data[0] | (rx_msg.data[1] << 8);
-        sData.cws.angle = rx_msg.data[2];
+        // sData.cws.distance = rx_msg.data[0] | (rx_msg.data[1] << 8);
+        // sData.cws.angle = rx_msg.data[2];
+        sData.cws.location = rx_msg.data[0] | ((uint16_t)rx_msg.data[1] << 8);
+        sData.cws.size = rx_msg.data[2] | ((uint16_t)rx_msg.data[3] << 8);
+        sData.cws.distance = rx_msg.data[4] | ((uint16_t)rx_msg.data[5] << 8);
+        sData.cws.type = rx_msg.data[6];
 
         // return PROCESS_DONE;
         return GET_CWS;
@@ -393,7 +397,7 @@ bool CHC_PROTOCOL::HMItoDIAG(uint8_t error)
  * @param hr_status 心跳裝置連線狀態
  * @param hr_value 心跳
  * @param sport_mode 運動模式，0：休閒，1：運動，2：訓練
-*/
+ */
 bool CHC_PROTOCOL::HMI_period(
     uint8_t hr_status,
     uint8_t hr_value,
