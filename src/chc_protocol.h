@@ -328,6 +328,8 @@ public:
         GET_DIAG,
     } REQ_type;
 
+    // bool init();
+    bool init(int rx_pin, int tx_pin, long baudrate = 500000);
     REQ_type rx();
 
 #ifdef node_HMI

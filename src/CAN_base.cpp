@@ -11,7 +11,7 @@
 #include "CAN.h"
 #endif
 
-bool CAN_base_init(int pinCanRx, int pinCanTx)
+bool CAN_base_init(int pinCanRx, int pinCanTx, long baudrate)
 {
 #ifdef CAN_lib_1
     twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(
@@ -44,7 +44,7 @@ bool CAN_base_init(int pinCanRx, int pinCanTx)
 #endif
 #ifdef CAN_lib_2
     CAN.setPins(pinCanRx, pinCanTx);
-    while (!CAN.begin(vCANbus_baudrate)) {
+    while (!CAN.begin(baudrate)) {
         CAN_LOG_E("CAN BUS Shield init fail");
         vTaskDelay(pdMS_TO_TICKS(1000));
         return false;

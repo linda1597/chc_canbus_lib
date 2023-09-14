@@ -70,7 +70,7 @@ typedef struct {
     uint8_t data[8]; /**< Data bytes (not relevant in RTR frame) */
 } CAN_frame_t;
 
-extern bool CAN_base_init(int pinCanRx, int pinCanTx);
+extern bool CAN_base_init(int pinCanRx, int pinCanTx,long baudrate = vCANbus_baudrate);
 extern bool CAN_base_transmit(CAN_frame_t* data);
 extern bool CAN_base_receive(CAN_frame_t* data, long timeout_ms);
 
