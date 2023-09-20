@@ -146,18 +146,32 @@ class CHC_PROTOCOL_HYENA2 {
 public:
     CHC_PROTOCOL_HYENA2();
     unsigned int cal_crc32(const unsigned char *buf, int len, unsigned int init);
-    
-    typedef union{
-        uint64_t moduleID;
-        uint8_t bytes[8];
-    }U_MODULEID;    
-    U_MODULEID ModuleID;
-
     typedef union {
         float var;
         uint8_t array[4];
     } U_float2bytes;
 
+    typedef union{
+        uint64_t ID;
+        uint8_t bytes[8];
+    }U_MODID;    
+    //U_PARAMETERS u_parameters;
+
+    typedef union {
+        uint64_t ID;
+        uint8_t bytes[8];
+    }U_BIKEID;
+
+    
+
+    typedef struct 
+    {
+        U_MODID u_modid;
+        U_BIKEID u_bikeid;
+
+    }S_PARAMETERS;
+    S_PARAMETERS s_parameters;
+    
     enum CAN_ID {
         // DIAG ID
         DIAGtoHMI = 0x772,

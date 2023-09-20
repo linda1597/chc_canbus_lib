@@ -13,7 +13,7 @@ CHC_PROTOCOL_HYENA2 chcProtocol_hyena2;
 
 CHC_PROTOCOL_HYENA2::CHC_PROTOCOL_HYENA2()
 {
-    ModuleID.moduleID = 0x4D4944FFFFFFFFFF;
+    s_parameters.u_modid.ID = 0x4D4944FFFFFFFFFF;
     // 建構子
 }
 CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
@@ -668,7 +668,7 @@ bool CHC_PROTOCOL_HYENA2::RRU_ModIDBroadcast()
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 8;
     for(uint8_t i=0; i<8; i++){
-        tx_msg.data[i] = ModuleID.bytes[i];
+        tx_msg.data[i] = s_parameters.u_modid.bytes[i];
     }
     return CAN_base_transmit(&tx_msg);
 }
