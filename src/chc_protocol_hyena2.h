@@ -162,13 +162,66 @@ public:
         uint8_t bytes[8];
     }U_BIKEID;
 
-    
+    typedef union{
+        uint32_t Date;
+        uint8_t bytes[4];
+    }U_SOLDDATE;
 
-    typedef struct 
+    typedef union{
+        uint32_t Date;
+        uint8_t bytes[4];
+    }U_ManufacturedDate;
+
+    typedef union{
+        uint16_t Version;
+        uint8_t bytes[2];
+    }U_FW_VERSION;    
+
+    typedef union{
+        uint16_t Version;
+        uint8_t bytes[2];
+    }U_HW_VERSION;
+
+    typedef union{
+        //String part_nm;
+        uint8_t bytes[24];
+    }U_PART_NM;
+
+    typedef union{
+        //String frame_nm;
+        uint8_t bytes[32];
+    }U_FRAME_NM;
+
+    typedef union{
+        uint64_t test_result;
+        uint8_t bytes[8];
+    }U_TEST_RESULT;
+
+    typedef union{
+        uint16_t bike_version;
+        uint8_t bytes[2];
+    }U_BIKE_VERSION;
+
+    typedef union{
+        uint8_t register_status;
+    }U_REGISTER_STATUS;
+
+    typedef union{
+        uint16_t safety_version;
+        uint8_t bytes[2];
+    }U_SAFETY_VERSION;
+
+
+    typedef struct __attribute((__packed__))
     {
         U_MODID u_modid;
         U_BIKEID u_bikeid;
-
+        U_SOLDDATE u_solddate;
+        U_ManufacturedDate u_manu;
+        U_FW_VERSION u_fw_v;
+        U_HW_VERSION u_hw_v;
+        U_PART_NM u_part_nm;
+        
     }S_PARAMETERS;
     S_PARAMETERS s_parameters;
     
