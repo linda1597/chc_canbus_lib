@@ -236,6 +236,13 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
         return REQ_RRU_ID;
         break;
 #endif
+#ifdef rx_tool_control
+    case CHC_PROTOCOL_HYENA2::TOOL_CONTROL:
+        this->operatingTime = rx_msg.data[0];
+        this->SME = rx_msg.data[1];
+        return GET_TOOL_CTRL;
+        break;
+#endif
 // MCU ID
 // ----------------------------------------------------------------
 #ifdef rx_MCUtoDIAG

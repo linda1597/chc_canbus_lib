@@ -42,6 +42,7 @@
 #define rx_read_rru_params
 #define rx_write_rru_params
 #define rx_read_rru_modID
+#define rx_tool_control
 
 #define rx_HMItoRRU
 #define rx_HMI_V
@@ -146,6 +147,9 @@ class CHC_PROTOCOL_HYENA2 {
 public:
     CHC_PROTOCOL_HYENA2();
     unsigned int cal_crc32(const unsigned char *buf, int len, unsigned int init);
+    
+    uint8_t operatingTime;
+    uint8_t SME;
     typedef union {
         float var;
         uint8_t array[4];
@@ -211,6 +215,7 @@ public:
         uint8_t bytes[2];
     }U_SAFETY_VERSION;
 
+    
 
     typedef struct __attribute((__packed__))
     {
@@ -226,6 +231,8 @@ public:
     S_PARAMETERS s_parameters;
     
     enum CAN_ID {
+        //Tool Control
+        TOOL_CONTROL = 0x309,
         // DIAG ID
         DIAGtoHMI = 0x772,
         DIAGtoMCU = 0x774,
@@ -372,6 +379,7 @@ public:
         GET_CWS,
         GET_NU,
         GET_DIAG,
+        GET_TOOL_CTRL
     } REQ_type;
 
     REQ_type rx();
