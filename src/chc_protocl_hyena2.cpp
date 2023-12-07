@@ -613,8 +613,8 @@ bool CHC_PROTOCOL_HYENA2::RRUError(uint8_t ErrPage, uint8_t ErrCode)
 // 傳送偵測物體ID、距離、速度、角度、警戒狀態
 bool CHC_PROTOCOL_HYENA2::RRU_Info(
     uint8_t id,
-    uint16_t distance,
     uint16_t speed,
+    uint16_t distance,
     uint8_t degree,
     uint8_t status)
 {

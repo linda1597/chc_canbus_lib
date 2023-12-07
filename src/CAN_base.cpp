@@ -19,7 +19,7 @@ bool CAN_base_init(int pinCanRx, int pinCanTx)
         (gpio_num_t)pinCanRx,
         TWAI_MODE_NORMAL); // TWAI_MODE_NORMAL, TWAI_MODE_NO_ACK or TWAI_MODE_LISTEN_ONLY
 
-    twai_timing_config_t t_config = TWAI_TIMING_CONFIG_500KBITS();
+    twai_timing_config_t t_config = TWAI_TIMING_CONFIG_250KBITS();
     twai_filter_config_t f_config = TWAI_FILTER_CONFIG_ACCEPT_ALL();
 
     esp_err_t err = twai_driver_install(&g_config, &t_config, &f_config);

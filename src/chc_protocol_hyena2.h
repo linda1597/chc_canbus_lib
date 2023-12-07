@@ -444,8 +444,8 @@ public:
     bool RRUError(uint8_t ErrPage,uint8_t ErrCode);
     bool RRU_Info(
         uint8_t id,
-        uint16_t distance,
         uint16_t speed,
+        uint16_t distance,
         uint8_t degree,
         uint8_t status);
     bool RRU_version(
