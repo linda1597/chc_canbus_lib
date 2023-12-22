@@ -150,6 +150,7 @@ public:
     
     uint8_t operatingTime;
     uint8_t SME;
+    
     typedef union {
         float var;
         uint8_t array[4];
@@ -206,17 +207,63 @@ public:
         uint8_t bytes[2];
     }U_BIKE_VERSION;
 
-    typedef union{
-        uint8_t register_status;
-    }U_REGISTER_STATUS;
+    // typedef union{
+    //     uint8_t register_status;
+    // }U_REGISTER_STATUS;
 
     typedef union{
         uint16_t safety_version;
         uint8_t bytes[2];
     }U_SAFETY_VERSION;
 
-    
+    typedef union{
+        uint16_t supplier_code;
+        uint8_t bytes[2];
+    }U_SUPPLIER_CODE;
 
+    typedef union{
+        uint16_t custom_code;
+        uint8_t bytes[2];
+    }U_CUSTOM_CODE;
+
+    typedef union 
+    {
+        //String ble_name;
+        uint8_t bytes[22];
+    }U_APP_BLE_NAME;
+
+    typedef union{
+        uint8_t bytes[22];
+    }U_BOOTLOADER_BLE_NAME;
+
+    typedef union{
+        uint16_t HW_K_version;
+        uint8_t bytes[2];
+    }U_HW_K_VERSION;
+
+    typedef union{
+        uint16_t K_version;
+        uint8_t bytes[2];
+    }U_K_VERSION;
+
+    typedef union{
+        uint16_t bootloader_v;
+        uint8_t bytes[2];
+    }U_BOOTLOADER_V;
+
+    typedef union{
+        uint8_t bytes[3];
+    }U_PARAM_VERSION;
+
+    typedef struct __attribute((__packed__))
+    {
+        uint8_t supported_distance;
+        uint16_t frequency1;
+        uint16_t frequency2;
+        uint32_t warning_distance;
+    }S_RADAR_PARAMS;
+    //S_RADAR_PARAMS s_radar_params;
+    uint8_t app_flag;
     typedef struct __attribute((__packed__))
     {
         U_MODID u_modid;
@@ -226,9 +273,24 @@ public:
         U_FW_VERSION u_fw_v;
         U_HW_VERSION u_hw_v;
         U_PART_NM u_part_nm;
-        
-    }S_PARAMETERS;
-    S_PARAMETERS s_parameters;
+        U_FRAME_NM u_frame_nm;
+        U_TEST_RESULT u_test_result;
+        U_BIKE_VERSION u_bike_version;
+        uint8_t register_status;
+        U_SAFETY_VERSION u_safety_version;
+        U_SUPPLIER_CODE u_supplier_code;
+        uint8_t reversed1[82];
+        U_CUSTOM_CODE u_custom_code;
+        U_APP_BLE_NAME u_app_ble_name;
+        U_BOOTLOADER_BLE_NAME u_bootloader_ble_name;
+        uint8_t reversed2[8];
+        U_HW_K_VERSION u_hw_k_version;
+        U_K_VERSION u_k_version;
+        U_BOOTLOADER_V u_bootloader_v;
+        U_PARAM_VERSION u_param_version;
+        S_RADAR_PARAMS s_radar_params;
+    }S_ALL_PARAMETERS;
+    S_ALL_PARAMETERS s_all_parameters;
     
     enum CAN_ID {
         //Tool Control
@@ -458,7 +520,7 @@ public:
 
     bool RRU_FWupdateRP(uint8_t dlc,uint8_t *payload);
     bool RRU_ModIDBroadcast();
-    enum OPCode{
+    typedef enum {
         JumptoBootloader = 0x01,
         JumptoApp,
         MCUInfoRead,
@@ -471,9 +533,9 @@ public:
         LogRead,
         LogClear,
         SetShipMode
-    }; 
+    }OPCode; 
 
-    enum RPCode{
+    typedef enum{
         SUCCESS,
         TimeOut,
         InvalidAddress,
@@ -482,7 +544,14 @@ public:
         CRCError,
         Unknown,
         Error
-    };
+    } RPCode;
+
+    typedef enum {
+        IDLE,
+        START,
+        ACCEPTING,
+    }RWStatus;
+    RWStatus rwstatus;
 #endif
 
 #ifdef node_CWS

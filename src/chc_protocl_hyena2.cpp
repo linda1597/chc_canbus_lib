@@ -13,7 +13,7 @@ CHC_PROTOCOL_HYENA2 chcProtocol_hyena2;
 
 CHC_PROTOCOL_HYENA2::CHC_PROTOCOL_HYENA2()
 {
-    s_parameters.u_modid.ID = 0x4D4944FFFFFFFFFF;
+    s_all_parameters.u_modid.ID = 0x4D4944FFFFFFFFFF;
     // 建構子
 }
 CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
@@ -243,6 +243,14 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
         return GET_TOOL_CTRL;
         break;
 #endif
+#ifdef rx_read_rru_params
+    case CHC_PROTOCOL_HYENA2::RRU_PARAM_R_REQ:
+        break;
+#endif
+#ifdef rx_write_rru_params
+    case CHC_PROTOCOL_HYENA2::RRU_PARAM_W_REQ:
+        break;
+#endif
 // MCU ID
 // ----------------------------------------------------------------
 #ifdef rx_MCUtoDIAG
@@ -394,7 +402,7 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
 }
 #ifdef node_HMI
 // 診斷碼
-bool CHC_PROTOCOL::HMItoDIAG(uint8_t error)
+bool CHC_PROTOCOL_HYENA2::HMItoDIAG(uint8_t error)
 {
     tx_msg.identifier = HMI_DIAG;
     tx_msg.extd = 0;
@@ -675,7 +683,7 @@ bool CHC_PROTOCOL_HYENA2::RRU_ModIDBroadcast()
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 8;
     for(uint8_t i=0; i<8; i++){
-        tx_msg.data[i] = s_parameters.u_modid.bytes[i];
+        tx_msg.data[i] = s_all_parameters.u_modid.bytes[i];
     }
     return CAN_base_transmit(&tx_msg);
 }
