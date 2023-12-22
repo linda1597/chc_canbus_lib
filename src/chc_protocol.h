@@ -280,6 +280,7 @@ public:
         uint8_t hr_status;
         uint8_t hr_value;
         uint8_t sport_mode;
+        uint8_t assist;
     } S_HMI_DATA;
 
     typedef struct {

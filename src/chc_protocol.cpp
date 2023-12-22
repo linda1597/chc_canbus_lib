@@ -27,7 +27,7 @@ bool CHC_PROTOCOL::init(int rx_pin, int tx_pin, long baudrate)
 }
 CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 {
-    if (CAN_base_receive(&rx_frame, 500) == false) {
+    if (CAN_base_receive(&rx_frame, 70) == false) {
         return NONE;
     }
     // CHC_PL_LOG("Received:");
@@ -552,7 +552,7 @@ bool CHC_PROTOCOL::MCUtoDIAG(uint8_t error)
 
 // 傳送扭力、踏頻、速度、電量
 bool CHC_PROTOCOL::MCU_period(
-    uint8_t support,
+    uint8_t assist,
     uint16_t torque,
     uint16_t cadence,
     uint16_t speed,
@@ -563,7 +563,7 @@ bool CHC_PROTOCOL::MCU_period(
     tx_frame.extd = 0;
     tx_frame.rtr = 0;
     tx_frame.data_length_code = 8;
-    tx_frame.data[0] = support; // 輔助力段位
+    tx_frame.data[0] = assist; // 輔助力段位
     tx_frame.data[1] = torque; // 扭力_L
     tx_frame.data[2] = torque >> 8; // 扭力_H
     tx_frame.data[3] = cadence; // 踏頻_L
