@@ -21,6 +21,8 @@ const int rx_queue_size = 10;
 bool CAN_base_init(int pinCanRx, int pinCanTx, long baudrate)
 {
 #ifdef CAN_lib_1
+    twai_stop();
+    twai_driver_uninstall();
     twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(
         (gpio_num_t)pinCanTx,
         (gpio_num_t)pinCanRx,
