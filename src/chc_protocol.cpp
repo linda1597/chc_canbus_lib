@@ -77,8 +77,12 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_HMItoDIAG
     case CHC_PROTOCOL::HMI_DIAG: // = 0x130,
-                                 // all_dtc.HMI_DTC = rx_frame.data[0];
+// all_dtc.HMI_DTC = rx_frame.data[0];
+#ifdef CAN_lib_2
+        sData.dtc.HMI = rx_frame.data.u8[0];
+#else
         sData.dtc.HMI = rx_frame.data[0];
+#endif
         // return PROCESS_DONE;
         return GET_HMI;
         break;
@@ -87,20 +91,23 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_HMI_1
     case CHC_PROTOCOL::HMI_ID1: // = 0x140,
+#ifdef CAN_lib_2
+        sData.hmi.hr_status = rx_frame.data.u8[0];
+        sData.hmi.hr_value = rx_frame.data.u8[1];
+        sData.hmi.sport_mode = rx_frame.data.u8[2];
+#else
         sData.hmi.hr_status = rx_frame.data[0];
         sData.hmi.hr_value = rx_frame.data[1];
         sData.hmi.sport_mode = rx_frame.data[2];
-        // return PROCESS_DONE;
-        return GET_HMI;
+#endif
+        return PROCESS_DONE;
         break;
 #endif
 
 // ----------------------------------------------------------------
 #ifdef rx_HMI_2
     case CHC_PROTOCOL::HMI_ID2: // = 0x141,
-        sData.hmi.assist = rx_frame.data[0];
-        // return PROCESS_DONE;
-        return GET_HMI;
+
         break;
 #endif
 
@@ -110,8 +117,15 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 
         // ----------------------------------------------------------------
 #ifdef node_MCU
+#ifdef CAN_lib_2
+        rx_frame.data.u8[0] = rx_frame.data.u8[0] & 0b00000011;
+        if (rx_frame.data.u8[0] == 0b00000001)
+#else
         rx_frame.data[0] = rx_frame.data[0] & 0b00000011;
-        if (rx_frame.data[0] == 0b00000001) {
+        if (rx_frame.data[0] == 0b00000001)
+#endif
+        {
+
             MCU_version(
                 protocol_Major,
                 protocol_Minor,
@@ -125,8 +139,14 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 
         // ----------------------------------------------------------------
 #ifdef node_RRU
+#ifdef CAN_lib_2
+        rx_frame.data.u8[0] = rx_frame.data.u8[0] & 0b00001100;
+        if (rx_frame.data.u8[0] == 0b00000100)
+#else
         rx_frame.data[0] = rx_frame.data[0] & 0b00001100;
-        if (rx_frame.data[0] == 0b00000100) {
+        if (rx_frame.data[0] == 0b00000100)
+#endif
+        {
             RRU_version(
                 protocol_Major,
                 protocol_Minor,
@@ -140,8 +160,14 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 
         // ----------------------------------------------------------------
 #ifdef node_CWS
+#ifdef CAN_lib_2
+        rx_frame.data.u8[0] = rx_frame.data.u8[0] & 0b00110000;
+        if (rx_frame.data.u8[0] == 0b00010000)
+#else
         rx_frame.data[0] = rx_frame.data[0] & 0b00110000;
-        if (rx_frame.data[0] == 0b00010000) {
+        if (rx_frame.data[0] == 0b00010000)
+#endif
+        {
             CWS_version(
                 protocol_Major,
                 protocol_Minor,
@@ -155,8 +181,14 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 
         // ----------------------------------------------------------------
 #ifdef node_NU
+#ifdef CAN_lib_2
+        rx_frame.data.u8[0] = rx_frame.data.u8[0] & 0b11000000;
+        if (rx_frame.data.u8[0] == 0b01000000)
+#else
         rx_frame.data[0] = rx_frame.data[0] & 0b11000000;
-        if (rx_frame.data[0] == 0b01000000) {
+        if (rx_frame.data[0] == 0b01000000)
+#endif
+        {
             NU_version(
                 protocol_Major,
                 protocol_Minor,
@@ -200,8 +232,15 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
         return SET_CWS_SLEEP;
 #endif
 #ifdef node_NU
+#ifdef CAN_lib_2
+        rx_frame.data.u8[0] = rx_frame.data.u8[0] & 0b11000000;
+        if (rx_frame.data.u8[0] == 0b01000000)
+#else
         rx_frame.data[0] = rx_frame.data[0] & 0b11000000;
-        if (rx_frame.data[0] == 0b01000000) {
+
+        if (rx_frame.data[0] == 0b01000000)
+#endif
+        {
             return SET_NU_AWAKE;
         }
         return SET_NU_SLEEP;
@@ -212,8 +251,13 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_HMItoRRU
     case CHC_PROTOCOL::HMItoRRU: // = 0x14D,
+#ifdef CAN_lib_2
+        sData.rru.set_detect_range = rx_frame.data.u16[0];
+        sData.rru.set_bling_hz = rx_frame.data.u8[2];
+#else
         sData.rru.set_detect_range = rx_frame.data[0] | (rx_frame.data[1] << 8);
         sData.rru.set_bling_hz = rx_frame.data[2];
+#endif
         // return PROCESS_DONE;
         return GET_HMI;
         break;
@@ -221,7 +265,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_HMItoCWS
     case CHC_PROTOCOL::HMItoCWS: // = 0x14E,
+#ifdef CAN_lib_2
+        sData.cws.set_detect_range = rx_frame.data.u16[0];
+#else
         sData.cws.set_detect_range = rx_frame.data[0] | (rx_frame.data[1] << 8);
+#endif
         // return PROCESS_DONE;
         return GET_HMI;
         break;
@@ -230,7 +278,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef rx_HMI_V
     case CHC_PROTOCOL::HMI_V: // = 0x14F,
         for (uint8_t i = 0; i < 6; i++) {
+#ifdef CAN_lib_2
+            sData.ver.HMI[i] = rx_frame.data.u8[i];
+#else
             sData.ver.HMI[i] = rx_frame.data[i];
+#endif
         }
         // return PROCESS_DONE;
         return GET_HMI;
@@ -240,7 +292,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_MCUtoDIAG
     case CHC_PROTOCOL::MCU_DIAG: // = 0x150,
+#ifdef CAN_lib_2
+        sData.dtc.MCU = rx_frame.data.u8[0];
+#else
         sData.dtc.MCU = rx_frame.data[0];
+#endif
         // return PROCESS_DONE;
         return GET_MCU;
         break;
@@ -248,12 +304,19 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_MCU_1
     case CHC_PROTOCOL::MCU_ID1: // = 0x160,
+#ifdef CAN_lib_2
+        sData.mcu.assist = rx_frame.data.u8[0];
+        sData.mcu.torque = rx_frame.data.u8[1] | (rx_frame.data.u8[2] << 8);
+        sData.mcu.cadence = rx_frame.data.u8[3] | (rx_frame.data.u8[4] << 8);
+        sData.mcu.speed = rx_frame.data.u8[5] | (rx_frame.data.u8[6] << 8);
+        sData.mcu.battery = rx_frame.data.u8[7];
+#else
         sData.mcu.assist = rx_frame.data[0];
         sData.mcu.torque = rx_frame.data[1] | (rx_frame.data[2] << 8);
         sData.mcu.cadence = rx_frame.data[3] | (rx_frame.data[4] << 8);
         sData.mcu.speed = rx_frame.data[5] | (rx_frame.data[6] << 8);
         sData.mcu.battery = rx_frame.data[7];
-
+#endif
         // return PROCESS_DONE;
         return GET_MCU;
         break;
@@ -262,7 +325,12 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef rx_MCU_V
     case CHC_PROTOCOL::MCU_V: // = 0x16F,
         for (uint8_t i = 0; i < 6; i++) {
+
+#ifdef CAN_lib_2
+            sData.ver.MCU[i] = rx_frame.data.u8[i];
+#else
             sData.ver.MCU[i] = rx_frame.data[i];
+#endif
         }
         // return PROCESS_DONE;
         return GET_MCU;
@@ -272,7 +340,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_RRUtoDIAG
     case CHC_PROTOCOL::RRU_DIAG: // = 0x190,
+#ifdef CAN_lib_2
+        sData.dtc.RRU = rx_frame.data.u8[0];
+#else
         sData.dtc.RRU = rx_frame.data[0];
+#endif
         // return PROCESS_DONE;
         return GET_RRU;
         break;
@@ -280,15 +352,22 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_RRU_1
     case CHC_PROTOCOL::RRU_ID1: // = 0x1A0,
-        // rru_data.ID = rx_frame.data[0];
-        // rru_data.distance = rx_frame.data[1] | (rx_frame.data[2] << 8);
-        // rru_data.speed = rx_frame.data[3] | (rx_frame.data[4] << 8);
-        // rru_data.angle = rx_frame.data[5];
+                                // rru_data.ID = rx_frame.data[0];
+                                // rru_data.distance = rx_frame.data[1] | (rx_frame.data[2] << 8);
+                                // rru_data.speed = rx_frame.data[3] | (rx_frame.data[4] << 8);
+                                // rru_data.angle = rx_frame.data[5];
+
+#ifdef CAN_lib_2
+        sData.rru.id = rx_frame.data.u8[0];
+        sData.rru.distance = rx_frame.data.u8[1] | (rx_frame.data.u8[2] << 8);
+        sData.rru.speed = rx_frame.data.u8[3] | (rx_frame.data.u8[4] << 8);
+        sData.rru.angle = rx_frame.data.u8[5];
+#else
         sData.rru.id = rx_frame.data[0];
         sData.rru.distance = rx_frame.data[1] | (rx_frame.data[2] << 8);
         sData.rru.speed = rx_frame.data[3] | (rx_frame.data[4] << 8);
         sData.rru.angle = rx_frame.data[5];
-
+#endif
         // return PROCESS_DONE;
         return GET_RRU;
         break;
@@ -296,10 +375,15 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_RRU_2
     case CHC_PROTOCOL::RRU_ID2: // = 0x1A1,
+#ifdef CAN_lib_2
+        sData.rru.status_alarm_L = rx_frame.data.u8[0];
+        sData.rru.status_alarm_R = rx_frame.data.u8[1];
+        sData.rru.status_light = rx_frame.data.u8[2];
+#else
         sData.rru.status_alarm_L = rx_frame.data[0];
         sData.rru.status_alarm_R = rx_frame.data[1];
         sData.rru.status_light = rx_frame.data[2];
-
+#endif
         // return PROCESS_DONE;
         return GET_RRU;
         break;
@@ -308,7 +392,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef rx_RRU_V
     case CHC_PROTOCOL::RRU_V: // = 0x1AF,
         for (uint8_t i = 0; i < 6; i++) {
+#ifdef CAN_lib_2
+            sData.ver.RRU[i] = rx_frame.data.u8[i];
+#else
             sData.ver.RRU[i] = rx_frame.data[i];
+#endif
         }
         // return PROCESS_DONE;
         return GET_RRU;
@@ -318,7 +406,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_CWStoDIAG
     case CHC_PROTOCOL::CWS_DIAG: // = 0x1B0,
+#ifdef CAN_lib_2
+        sData.dtc.CWS = rx_frame.data.u8[0];
+#else
         sData.dtc.CWS = rx_frame.data[0];
+#endif
         // return PROCESS_DONE;
         return GET_CWS;
         break;
@@ -326,13 +418,20 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_CWS_1
     case CHC_PROTOCOL::CWS_ID1: // = 0x1C0,
-        // sData.cws.distance = rx_frame.data[0] | (rx_frame.data[1] << 8);
-        // sData.cws.angle = rx_frame.data[2];
+// sData.cws.distance = rx_frame.data[0] | (rx_frame.data[1] << 8);
+// sData.cws.angle = rx_frame.data[2];
+#ifdef CAN_lib_2
+        sData.cws.location = rx_frame.data.u8[0] | ((uint16_t)rx_frame.data.u8[1] << 8);
+        sData.cws.size = rx_frame.data.u8[2] | ((uint16_t)rx_frame.data.u8[3] << 8);
+        sData.cws.distance = rx_frame.data.u8[4] | ((uint16_t)rx_frame.data.u8[5] << 8);
+        sData.cws.type = rx_frame.data.u8[6];
+
+#else
         sData.cws.location = rx_frame.data[0] | ((uint16_t)rx_frame.data[1] << 8);
         sData.cws.size = rx_frame.data[2] | ((uint16_t)rx_frame.data[3] << 8);
         sData.cws.distance = rx_frame.data[4] | ((uint16_t)rx_frame.data[5] << 8);
         sData.cws.type = rx_frame.data[6];
-
+#endif
         // return PROCESS_DONE;
         return GET_CWS;
         break;
@@ -341,7 +440,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef rx_CWS_V
     case CHC_PROTOCOL::CWS_V: // = 0x1CF,
         for (uint8_t i = 0; i < 6; i++) {
+#ifdef CAN_lib_2
+            sData.ver.CWS[i] = rx_frame.data.u8[i];
+#else
             sData.ver.CWS[i] = rx_frame.data[i];
+#endif
         }
         // return PROCESS_DONE;
         return GET_CWS;
@@ -351,7 +454,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_NUtoDIAG
     case CHC_PROTOCOL::NU_DIAG: // = 0x1D0,
+#ifdef CAN_lib_2
+        sData.dtc.NU = rx_frame.data.u8[0];
+#else
         sData.dtc.NU = rx_frame.data[0];
+#endif
         return GET_NU;
         // return PROCESS_DONE;
         break;
@@ -359,8 +466,14 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_NU_1
     case CHC_PROTOCOL::NU_ID1: // = 0x1E0,
+
+#ifdef CAN_lib_2
+        sData.nu.longitude = rx_frame.data.u32[0];
+        sData.nu.latitude = rx_frame.data.u32[1];
+#else
         sData.nu.longitude = rx_frame.data[0] | (rx_frame.data[1] << 8) | (rx_frame.data[2] << 16) | (rx_frame.data[3] << 24);
         sData.nu.latitude = rx_frame.data[4] | (rx_frame.data[5] << 8) | (rx_frame.data[6] << 16) | (rx_frame.data[7] << 24);
+#endif
 
         return GET_NU;
         // return PROCESS_DONE;
@@ -369,8 +482,13 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 // ----------------------------------------------------------------
 #ifdef rx_NU_2
     case CHC_PROTOCOL::NU_ID2: // = 0x1E1,
+#ifdef CAN_lib_2
+        sData.nu.altitude = rx_frame.data.u8[0] | (uint16_t)rx_frame.data.u8[1] << 8;
+        sData.nu.speed = rx_frame.data.u8[2] | (uint16_t)rx_frame.data.u8[3] << 8;
+#else
         sData.nu.altitude = rx_frame.data[0] | (rx_frame.data[1] << 8);
         sData.nu.speed = rx_frame.data[2] | (rx_frame.data[3] << 8);
+#endif
 
         return GET_NU;
         // return PROCESS_DONE;
@@ -380,7 +498,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef rx_NU_V
     case CHC_PROTOCOL::NU_V: // = 0x1EF
         for (uint8_t i = 0; i < 6; i++) {
+#ifdef CAN_lib_2
+            sData.ver.NU[i] = rx_frame.data.u8[i];
+#else
             sData.ver.NU[i] = rx_frame.data[i];
+#endif
         }
         return GET_NU;
         // return PROCESS_DONE;
@@ -729,11 +851,19 @@ bool CHC_PROTOCOL::CWS_version(
 // 診斷碼
 bool CHC_PROTOCOL::NUtoDIAG(uint8_t error)
 {
+#ifdef CAN_lib_2
+    tx_frame.MsgID = NU_DIAG;
+    tx_frame.FIR.B.FF = CAN_frame_std;
+    tx_frame.FIR.B.RTR = CAN_no_RTR;
+    tx_frame.FIR.B.DLC = 1;
+    tx_frame.data.u8[0] = error;
+#else
     tx_frame.identifier = NU_DIAG;
     tx_frame.extd = 0;
     tx_frame.rtr = 0;
     tx_frame.data_length_code = 1;
     tx_frame.data[0] = error;
+#endif
     return CAN_base_transmit(&tx_frame);
 }
 
@@ -743,11 +873,19 @@ bool CHC_PROTOCOL::NU_period1(
     float latitude)
 {
     U_float2bytes trans;
+#ifdef CAN_lib_2
+    tx_frame.MsgID = NU_ID1;
+    tx_frame.FIR.B.FF = CAN_frame_std;
+    tx_frame.FIR.B.RTR = CAN_no_RTR;
+    tx_frame.FIR.B.DLC = 8;
+    tx_frame.data.u32[0] = (uint32_t)longitude;
+    tx_frame.data.u32[1] = (uint32_t)latitude;
+#else
     tx_frame.identifier = NU_ID1;
     tx_frame.extd = 0;
     tx_frame.rtr = 0;
     tx_frame.data_length_code = 8;
-    trans.var = latitude;
+    trans.var = longitude;
 
     for (int i = 0; i < 4; i++) {
         tx_frame.data[i] = trans.array[3 - i];
@@ -757,7 +895,7 @@ bool CHC_PROTOCOL::NU_period1(
     for (int i = 0; i < 4; i++) {
         tx_frame.data[i + 4] = trans.array[3 - i];
     }
-
+#endif
     return CAN_base_transmit(&tx_frame);
 }
 
@@ -767,6 +905,18 @@ bool CHC_PROTOCOL::NU_period2(
     uint16_t speed,
     uint8_t status)
 {
+#ifdef CAN_lib_2
+    tx_frame.MsgID = NU_ID2;
+    tx_frame.FIR.B.FF = CAN_frame_std;
+    tx_frame.FIR.B.RTR = CAN_no_RTR;
+    tx_frame.FIR.B.DLC = 5;
+    tx_frame.data.u8[0] = (uint8_t)altitude;
+    tx_frame.data.u8[1] = (uint8_t)altitude >> 8;
+    tx_frame.data.u8[2] = (uint8_t)speed;
+    tx_frame.data.u8[3] = (uint8_t)speed >> 8;
+    tx_frame.data.u8[4] = status;
+
+#else
     tx_frame.identifier = NU_ID2;
     tx_frame.extd = 0;
     tx_frame.rtr = 0;
@@ -776,6 +926,7 @@ bool CHC_PROTOCOL::NU_period2(
     tx_frame.data[2] = (uint8_t)speed;
     tx_frame.data[3] = (uint8_t)speed >> 8;
     tx_frame.data[4] = status;
+#endif
     return CAN_base_transmit(&tx_frame);
 }
 
@@ -787,6 +938,18 @@ bool CHC_PROTOCOL::NU_version(
     uint8_t hw_major,
     uint8_t hw_minor)
 {
+#ifdef CAN_lib_2
+    tx_frame.MsgID = NU_V;
+    tx_frame.FIR.B.FF = CAN_frame_std;
+    tx_frame.FIR.B.RTR = CAN_no_RTR;
+    tx_frame.FIR.B.DLC = 6;
+    tx_frame.data.u8[0] = protocol_major;
+    tx_frame.data.u8[1] = protocol_minor;
+    tx_frame.data.u8[2] = sw_major;
+    tx_frame.data.u8[3] = sw_minor;
+    tx_frame.data.u8[4] = hw_major;
+    tx_frame.data.u8[5] = hw_minor;
+#else
     tx_frame.identifier = NU_V;
     tx_frame.extd = 0;
     tx_frame.rtr = 0;
@@ -797,6 +960,7 @@ bool CHC_PROTOCOL::NU_version(
     tx_frame.data[3] = sw_minor;
     tx_frame.data[4] = hw_major;
     tx_frame.data[5] = hw_minor;
+#endif
     return CAN_base_transmit(&tx_frame);
 }
 #endif
