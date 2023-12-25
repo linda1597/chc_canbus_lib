@@ -90,14 +90,17 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
         sData.hmi.hr_status = rx_frame.data[0];
         sData.hmi.hr_value = rx_frame.data[1];
         sData.hmi.sport_mode = rx_frame.data[2];
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_HMI;
         break;
 #endif
 
 // ----------------------------------------------------------------
 #ifdef rx_HMI_2
     case CHC_PROTOCOL::HMI_ID2: // = 0x141,
-
+        sData.hmi.assist = rx_frame.data[0];
+        // return PROCESS_DONE;
+        return GET_HMI;
         break;
 #endif
 

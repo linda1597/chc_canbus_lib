@@ -1,7 +1,10 @@
 #ifndef _CAN_BASE_H_
 #define _CAN_BASE_H_
 #include <Arduino.h>
-#define DEBUG_CAN_LEVEL 4
+#ifdef CAN_lib_2
+#include <ESP32CAN.h>
+#endif
+#define DEBUG_CAN_LEVEL 1 
 #define DEBUG_CAN_SERIAL Serial
 
 #if DEBUG_CAN_LEVEL >= 1
@@ -36,21 +39,7 @@
 // -------------------------------------------------
 // #define CAN_lib_1 // for ESP32 twai lib
 // #define CAN_lib_2 // for https://github.com/sandeepmistry/arduino-CAN.git
-
 #define vCANbus_baudrate 500000
-typedef enum {
-    CAN_frame_std = 0, /**< Standard frame, using 11 bit identifer. */
-    CAN_frame_ext = 1 /**< Extended frame, using 29 bit identifer. */
-} CAN_frame_format_t;
-
-/**
- * \brief CAN RTR
- */
-typedef enum {
-    CAN_no_RTR = 0, /**< No RTR frame. */
-    CAN_RTR = 1 /**< RTR frame. */
-} CAN_RTR_t;
-
 typedef struct {
     union {
         struct {
@@ -68,9 +57,8 @@ typedef struct {
     uint32_t identifier; /**< 11 or 29 bit identifier */
     uint8_t data_length_code; /**< Data length code */
     uint8_t data[8]; /**< Data bytes (not relevant in RTR frame) */
-} CAN_frame_t;
-
-extern bool CAN_base_init(int pinCanRx, int pinCanTx,long baudrate = vCANbus_baudrate);
+} CAN_frame_tt;
+extern bool CAN_base_init(int pinCanRx, int pinCanTx, long baudrate = vCANbus_baudrate);
 extern bool CAN_base_transmit(CAN_frame_t* data);
 extern bool CAN_base_receive(CAN_frame_t* data, long timeout_ms);
 
