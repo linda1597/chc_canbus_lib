@@ -1,8 +1,8 @@
 #include "chc_protocol_hyena.h"
 #include "CAN_base.h"
-
 CAN_frame_t rx_frame;
 CAN_frame_t tx_frame;
+
 CHC_PROTOCOL_HYENA chcProtocol_hyena;
 
 // long lCanbusTimeOut = 0;
@@ -219,38 +219,50 @@ bool CHC_PROTOCOL_HYENA::init(int rx_pin, int tx_pin, long baudrate)
 CHC_PROTOCOL_HYENA::REQ_type CHC_PROTOCOL_HYENA::rx(void)
 {
     U_FRAME* ulFrame;
-    if (CAN_base_receive(&rx_frame, 500) == false) {
+    if (CAN_base_receive(&rx_frame, 1) == false) {
         return NONE;
     }
+#ifdef CAN_lib_2
+    ulFrame = (U_FRAME*)rx_frame.data.u8;
+#else
     ulFrame = (U_FRAME*)rx_frame.data;
-
-    switch (rx_frame.identifier) {
+#endif
+#ifdef CAN_lib_2
+    switch (rx_frame.MsgID)
+#else
+    switch (rx_frame.identifier)
+#endif
+    {
     case CANID_INFO: {
         switch (ulFrame->ucInfo[OPC]) {
         // * ----------------------------------
         // * 讀取控制器：內容接收 .......
         case OPC_DRV: {
             sData.mcu.cadence = (int8_t)ulFrame->sDrv.RPM;
-            sData.mcu.torque = ((int16_t)ulFrame->sDrv.TorqueH << 8) | (int16_t)ulFrame->sDrv.TorqueL;
+            sData.mcu.torque = (((int16_t)ulFrame->sDrv.TorqueH << 8) | (int16_t)ulFrame->sDrv.TorqueL) / 10;
             sData.mcu.assist = (int8_t)ulFrame->sDrv.AssistLevel;
-            sData.mcu.tempDriveFet = (int8_t)ulFrame->sDrv.TempDriveFET;
-            sData.mcu.speed = ((int16_t)ulFrame->sDrv.SpeedH << 8) | (int16_t)ulFrame->sDrv.SpeedL;
+            sData.mcu.tempDriveFet = (int8_t)ulFrame->sDrv.TempDriveFET - 64;
+            sData.mcu.speed = (((int16_t)ulFrame->sDrv.SpeedH << 8) | (int16_t)ulFrame->sDrv.SpeedL) / 10;
 
-            BIKE_HYENA_LOG_I("RPM: %d\tTorque:%d,Assist:%d,Temp:%d,Speed:%d ",
+            BIKE_HYENA_LOG_I("\n\tRPM:%d\tTorque:%d\tAssist:%d\tTemp:%d\tSpeed:%d ",
                 sData.mcu.cadence,
                 sData.mcu.torque,
                 sData.mcu.assist,
                 sData.mcu.tempDriveFet,
                 sData.mcu.speed);
+            return GET_MCU;
         } break;
         // * ----------------------------------
         // * 讀取控制器：里程數
         case OPC_ODO: {
-            sData.mcu.odo = ((int32_t)ulFrame->sOdo.ODOH << 16)
-                | ((int32_t)ulFrame->sOdo.ODOM << 8)
-                | (int32_t)ulFrame->sOdo.ODOL;
+            sData.mcu.odo = (((int32_t)ulFrame->sOdo.ODOH << 16)
+                                | ((int32_t)ulFrame->sOdo.ODOM << 8)
+                                | (int32_t)ulFrame->sOdo.ODOL)
+                / 10;
 
-            BIKE_HYENA_LOG_I("ODO: %d", sData.mcu.odo);
+            BIKE_HYENA_LOG_I("\n\tODO: %d", sData.mcu.odo);
+
+            return GET_MCU;
         } break;
         // * ----------------------------------
         // * 讀取控制器：電池狀態
@@ -258,9 +270,11 @@ CHC_PROTOCOL_HYENA::REQ_type CHC_PROTOCOL_HYENA::rx(void)
             sData.mcu.battery = ulFrame->sBat.Capacity;
             sData.mcu.batteryHealth = ulFrame->sBat.Health;
 
-            BIKE_HYENA_LOG_I("BAT Capacity: %d\tHealth:%d",
+            BIKE_HYENA_LOG_I("\n\tBAT Capacity: %d\tHealth:%d",
                 sData.mcu.battery,
                 sData.mcu.batteryHealth);
+
+            return GET_MCU;
         } break;
         // * ----------------------------------
         // * 讀取控制器：電流狀態
@@ -270,7 +284,9 @@ CHC_PROTOCOL_HYENA::REQ_type CHC_PROTOCOL_HYENA::rx(void)
                 | ((int32_t)ulFrame->sCur.CurLH << 8)
                 | ((int32_t)ulFrame->sCur.CurLL);
 
-            BIKE_HYENA_LOG_I("Current: %d", sData.mcu.current);
+            BIKE_HYENA_LOG_I("\n\tCurrent: %d", sData.mcu.current);
+
+            return GET_MCU;
         } break;
         // * ----------------------------------
         // * 讀取控制器：電壓狀態
@@ -280,7 +296,8 @@ CHC_PROTOCOL_HYENA::REQ_type CHC_PROTOCOL_HYENA::rx(void)
                 | ((int32_t)ulFrame->sVol.VolLH << 8)
                 | ((int32_t)ulFrame->sVol.VolLL);
 
-            BIKE_HYENA_LOG_I("Voltage: %d", sData.mcu.voltage);
+            BIKE_HYENA_LOG_I("\n\tVoltage: %d", sData.mcu.voltage);
+            return GET_MCU;
         } break;
         // * ----------------------------------
         // * 讀取控制器：
@@ -289,12 +306,13 @@ CHC_PROTOCOL_HYENA::REQ_type CHC_PROTOCOL_HYENA::rx(void)
         // * ----------------------------------
         // * 讀取控制器：錯誤資訊
         case OPC_ERR: {
-            BIKE_HYENA_LOG("Error:");
+            BIKE_HYENA_LOG("\n\tError:");
             for (int i = 0; i < 7; i++) {
                 sData.mcu.error[i] = ulFrame->sErr.Error[i];
                 BIKE_HYENA_LOG_S("%d ", sData.mcu.error[i]);
             }
             BIKE_HYENA_LOG_S("\n");
+            return GET_MCU;
         } break;
         // * ----------------------------------
         // *
@@ -305,12 +323,13 @@ CHC_PROTOCOL_HYENA::REQ_type CHC_PROTOCOL_HYENA::rx(void)
     // * ----------------------------------
     // * 讀取控制器：ID 讀取
     case CANID_NO: {
-        BIKE_HYENA_LOG("Bike ID = ");
+        BIKE_HYENA_LOG("\n\tBike ID = ");
         for (int i = 0; i < 8; i++) {
             sData.mcu.uniqueId[i] = ulFrame->sUniqueId.ID[i];
             BIKE_HYENA_LOG_S("0x%02X ", sData.mcu.uniqueId[i]);
         }
         BIKE_HYENA_LOG_S("\n");
+        return GET_MCU;
     } break;
 
     // * ----------------------------------
@@ -318,4 +337,140 @@ CHC_PROTOCOL_HYENA::REQ_type CHC_PROTOCOL_HYENA::rx(void)
     default: {
     } break;
     }
+    return NONE;
 }
+
+#ifdef node_NU
+
+// 診斷碼
+bool CHC_PROTOCOL_HYENA::NUtoDIAG(uint8_t error)
+{
+#ifdef CAN_lib_2
+    tx_frame.MsgID = NU_DIAG;
+    tx_frame.FIR.B.FF = CAN_frame_std;
+    tx_frame.FIR.B.RTR = CAN_no_RTR;
+    tx_frame.FIR.B.DLC = 1;
+    tx_frame.data.u8[0] = error;
+#else
+    tx_frame.identifier = NU_DIAG;
+    tx_frame.extd = 0;
+    tx_frame.rtr = 0;
+    tx_frame.data_length_code = 1;
+    tx_frame.data[0] = error;
+#endif
+    return CAN_base_transmit(&tx_frame);
+}
+
+// 經度、緯度
+bool CHC_PROTOCOL_HYENA::NU_period1(
+    float longitude,
+    float latitude)
+{
+#ifdef CAN_lib_2
+    tx_frame.MsgID = NU_ID1;
+    tx_frame.FIR.B.FF = CAN_frame_std;
+    tx_frame.FIR.B.RTR = CAN_no_RTR;
+    tx_frame.FIR.B.DLC = 8;
+    tx_frame.data.u32[0] = (uint32_t)longitude;
+    tx_frame.data.u32[1] = (uint32_t)latitude;
+#else
+    U_float2bytes trans;
+    tx_frame.identifier = NU_ID1;
+    tx_frame.extd = 0;
+    tx_frame.rtr = 0;
+    tx_frame.data_length_code = 8;
+
+    // tx_frame.MsgID = NU_ID1;
+    // tx_frame.FIR.B.FF = CAN_frame_std;
+    // tx_frame.FIR.B.RTR = CAN_no_RTR;
+
+    // tx_frame.FIR.B.DLC = 8;
+
+    trans.var = latitude;
+
+    for (int i = 0; i < 4; i++) {
+        tx_frame.data[i] = trans.array[3 - i];
+    }
+    trans.var = latitude;
+
+    for (int i = 0; i < 4; i++) {
+        tx_frame.data[i + 4] = trans.array[3 - i];
+    }
+#endif
+    return CAN_base_transmit(&tx_frame);
+}
+
+// 海拔、速度、模組連網狀態
+bool CHC_PROTOCOL_HYENA::NU_period2(
+    uint16_t altitude,
+    uint16_t speed,
+    uint8_t status)
+{
+#ifdef CAN_lib_2
+    tx_frame.MsgID = NU_ID2;
+    tx_frame.FIR.B.FF = CAN_frame_std;
+    tx_frame.FIR.B.RTR = CAN_no_RTR;
+    tx_frame.FIR.B.DLC = 5;
+    tx_frame.data.u8[0] = (uint8_t)altitude;
+    tx_frame.data.u8[1] = (uint8_t)(altitude >> 8);
+    tx_frame.data.u8[2] = (uint8_t)speed;
+    tx_frame.data.u8[3] = (uint8_t)(speed >> 8);
+    tx_frame.data.u8[4] = status;
+#else
+    tx_frame.identifier = NU_ID2;
+    // tx_frame.MsgID = NU_ID2;
+    tx_frame.extd = 0;
+    // tx_frame.FIR.B.FF = CAN_frame_std;
+    tx_frame.rtr = 0;
+    // tx_frame.FIR.B.RTR = CAN_no_RTR;
+    tx_frame.data_length_code = 5;
+    // tx_frame.FIR.B.DLC = 5;
+    tx_frame.data[0] = (uint8_t)altitude;
+    tx_frame.data[1] = (uint8_t)altitude >> 8;
+    tx_frame.data[2] = (uint8_t)speed;
+    tx_frame.data[3] = (uint8_t)speed >> 8;
+    tx_frame.data[4] = status;
+#endif
+    return CAN_base_transmit(&tx_frame);
+}
+
+bool CHC_PROTOCOL_HYENA::NU_version(
+    uint8_t protocol_major,
+    uint8_t protocol_minor,
+    uint8_t sw_major,
+    uint8_t sw_minor,
+    uint8_t hw_major,
+    uint8_t hw_minor)
+{
+#ifdef CAN_lib_2
+    tx_frame.MsgID = NU_V;
+    tx_frame.FIR.B.FF = CAN_frame_std;
+    tx_frame.FIR.B.RTR = CAN_no_RTR;
+    tx_frame.FIR.B.DLC = 6;
+    tx_frame.data.u8[0] = protocol_major;
+    tx_frame.data.u8[1] = protocol_minor;
+    tx_frame.data.u8[2] = sw_major;
+    tx_frame.data.u8[3] = sw_minor;
+    tx_frame.data.u8[4] = hw_major;
+    tx_frame.data.u8[5] = hw_minor;
+#else
+    tx_frame.identifier = NU_V;
+    // tx_frame.MsgID = NU_V;
+    tx_frame.extd = 0;
+    // tx_frame.FIR.B.FF = CAN_frame_std;
+    tx_frame.rtr = 0;
+    // tx_frame.FIR.B.RTR = CAN_no_RTR;
+    tx_frame.data_length_code = 6;
+    // tx_frame.FIR.B.DLC = 6;
+    tx_frame.data[0] = protocol_major;
+    tx_frame.data[1] = protocol_minor;
+    tx_frame.data[2] = sw_major;
+    tx_frame.data[3] = sw_minor;
+    tx_frame.data[4] = hw_major;
+    tx_frame.data[5] = hw_minor;
+#endif
+
+    return CAN_base_transmit(&tx_frame);
+    // return CAN_base_transmit((CAN_frame_t*)tx_frame);
+}
+#endif
