@@ -30,13 +30,18 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
     if (CAN_base_receive(&rx_frame, 70) == false) {
         return NONE;
     }
-    // CHC_PL_LOG("Received:");
-    // for (uint8_t i = 0; i < rx_frame.data_length_code; i++) {
-    //     CHC_PL_LOG_S("%02X ", rx_frame.data[i]);
-    // }
-    // CHC_PL_LOG_S("\n");
-    // ----------------- 以下為接收到的資料 -----------------
-    switch (rx_frame.identifier) {
+// CHC_PL_LOG("Received:");
+// for (uint8_t i = 0; i < rx_frame.data_length_code; i++) {
+//     CHC_PL_LOG_S("%02X ", rx_frame.data[i]);
+// }
+// CHC_PL_LOG_S("\n");
+// ----------------- 以下為接收到的資料 -----------------
+#ifdef CAN_lib_2
+    switch (rx_frame.MsgID)
+#else
+    switch (rx_frame.identifier)
+#endif
+    {
         // DIAG ID --------------------------------
 // ----------------------------------------------------------------
 #ifdef rx_DIAGtoHMI
