@@ -99,20 +99,26 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef CAN_lib_2
         sData.hmi.hr_status = rx_frame.data.u8[0];
         sData.hmi.hr_value = rx_frame.data.u8[1];
-        sData.hmi.sport_mode = rx_frame.data.u8[2];
+        sData.hmi.sport_level = rx_frame.data.u8[2];
 #else
         sData.hmi.hr_status = rx_frame.data[0];
         sData.hmi.hr_value = rx_frame.data[1];
         sData.hmi.sport_mode = rx_frame.data[2];
 #endif
-        return PROCESS_DONE;
+        // return PROCESS_DONE;
+        return GET_HMI;
         break;
 #endif
 
 // ----------------------------------------------------------------
 #ifdef rx_HMI_2
     case CHC_PROTOCOL::HMI_ID2: // = 0x141,
-
+#ifdef CAN_lib_2
+        sData.hmi.assist = rx_frame.data.u8[0];
+#else
+        sData.hmi.assist = rx_frame.data[0];
+#endif
+        return GET_HMI;
         break;
 #endif
 
