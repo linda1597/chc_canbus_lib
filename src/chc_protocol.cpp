@@ -100,10 +100,14 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
         sData.hmi.hr_status = rx_frame.data.u8[0];
         sData.hmi.hr_value = rx_frame.data.u8[1];
         sData.hmi.sport_level = rx_frame.data.u8[2];
+        sData.hmi.mode = rx_frame.data.u8[3];
+        sData.hmi.hr_warning = rx_frame.data.u8[4];
 #else
         sData.hmi.hr_status = rx_frame.data[0];
         sData.hmi.hr_value = rx_frame.data[1];
         sData.hmi.sport_mode = rx_frame.data[2];
+        sData.hmi.mode = rx_frame.data[3];
+        sData.hmi.hr_warning = rx_frame.data[4];
 #endif
         // return PROCESS_DONE;
         return GET_HMI;
@@ -496,9 +500,11 @@ CHC_PROTOCOL::REQ_type CHC_PROTOCOL::rx()
 #ifdef CAN_lib_2
         sData.nu.altitude = rx_frame.data.u8[0] | (uint16_t)rx_frame.data.u8[1] << 8;
         sData.nu.speed = rx_frame.data.u8[2] | (uint16_t)rx_frame.data.u8[3] << 8;
+        sData.nu.status = rx_frame.data.u8[4];
 #else
         sData.nu.altitude = rx_frame.data[0] | (rx_frame.data[1] << 8);
         sData.nu.speed = rx_frame.data[2] | (rx_frame.data[3] << 8);
+        sData.nu.status = rx_frame.data[4];
 #endif
 
         return GET_NU;
@@ -547,15 +553,19 @@ bool CHC_PROTOCOL::HMItoDIAG(uint8_t error)
 bool CHC_PROTOCOL::HMI_period(
     uint8_t hr_status,
     uint8_t hr_value,
-    uint8_t sport_mode)
+    uint8_t sport_mode,
+    uint8_t mode,
+    uint8_t warning)
 {
     tx_frame.identifier = HMI_ID1;
     tx_frame.extd = 0;
     tx_frame.rtr = 0;
-    tx_frame.data_length_code = 3;
+    tx_frame.data_length_code = 5;
     tx_frame.data[0] = hr_status;
     tx_frame.data[1] = hr_value;
     tx_frame.data[2] = sport_mode;
+    tx_frame.data[3] = mode;
+    tx_frame.data[4] = warning;
     return CAN_base_transmit(&tx_frame);
 }
 

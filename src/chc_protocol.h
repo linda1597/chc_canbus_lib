@@ -281,6 +281,8 @@ public:
         uint8_t hr_value;
         uint8_t sport_level;
         uint8_t assist;
+        uint8_t mode;
+        uint8_t hr_warning;
     } S_HMI_DATA;
 
     typedef struct {
@@ -339,7 +341,9 @@ public:
     bool HMI_period(
         uint8_t hr_status,
         uint8_t hr_value,
-        uint8_t sport_mode);
+        uint8_t sport_mode,
+        uint8_t mode,
+        uint8_t warning);
 
     bool MCU_setAssist(uint8_t u8Assist);
 
