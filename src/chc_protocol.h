@@ -48,6 +48,7 @@
 #ifdef node_HMI
 #define rx_MCUtoDIAG
 #define rx_MCU_1
+#define rx_MCU_2
 #define rx_MCU_V
 
 #define rx_RRUtoDIAG
@@ -112,6 +113,7 @@
 #define rx_HMI_V
 #define rx_MCUtoDIAG
 #define rx_MCU_1
+#define rx_MCU_2
 #define rx_MCU_V
 #define rx_RRUtoDIAG
 #define rx_RRU_1
@@ -206,6 +208,7 @@ public:
         // MCU ID
         MCU_DIAG = 0x150,
         MCU_ID1 = 0x160,
+        MCU_ID2 = 0x161,
         MCU_V = 0x16F,
         // RRU ID
         RRU_DIAG = 0x190,
@@ -239,6 +242,7 @@ public:
         uint16_t cadence;
         uint16_t speed;
         uint8_t battery;
+        uint8_t u8PowerStatus;
     } S_MCU_DATA;
 
     typedef struct
@@ -283,6 +287,7 @@ public:
         uint8_t assist;
         uint8_t mode;
         uint8_t hr_warning;
+        uint8_t u8PowerKeep;
     } S_HMI_DATA;
 
     typedef struct {
@@ -343,7 +348,8 @@ public:
         uint8_t hr_value,
         uint8_t sport_mode,
         uint8_t mode,
-        uint8_t warning);
+        uint8_t warning,
+        uint8_t u8fPowerKeep);
 
     bool MCU_setAssist(uint8_t u8Assist);
 
@@ -384,6 +390,7 @@ public:
         uint16_t cadence,
         uint16_t speed,
         uint8_t battery);
+    bool MCU_setPower(uint8_t u8fPowerStatus);
     bool MCU_version(
         uint8_t protocol_major,
         uint8_t protocol_minor,
