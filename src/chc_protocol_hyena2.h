@@ -3,37 +3,6 @@
 #include <Arduino.h>
 #include <CAN_base.h>
 
-#ifdef node_HMI
-#define rx_MCUtoDIAG
-#define rx_MCU_1
-#define rx_MCU_V
-
-#define rx_RRUtoDIAG
-#define rx_RRU_1
-#define rx_RRU_2
-#define rx_RRU_V
-
-#define rx_CWStoDIAG
-#define rx_CWS_1
-#define rx_CWS_V
-
-#define rx_NUtoDIAG
-#define rx_NU_2
-#define rx_NU_V
-#define rx_DIAGtoHMI
-#endif
-// ----------------------------------------------------------------
-#ifdef node_MCU
-#define rx_HMI_2
-#define rx_NM_get_INFO
-#define rx_NM_set_CMD
-#define rx_HMI_V
-
-#define rx_RRU_V
-#define rx_CWS_V
-#define rx_NU_V
-#define rx_DIAGtoMCU
-#endif
 // ----------------------------------------------------------------
 #ifdef node_RRU
 #define rx_NM_get_INFO
@@ -43,65 +12,36 @@
 #define rx_write_rru_params
 #define rx_read_rru_modID
 #define rx_tool_control
-
-#define rx_HMItoRRU
-#define rx_HMI_V
-
-#define rx_MCU_V
-
-#define rx_RRU_V
-
-#define rx_CWS_V
-
-#define rx_NU_V
-#define rx_DIAGtoRRU
-#endif
-// ----------------------------------------------------------------
-#ifdef node_CWS
-#define NM_get_INFO
-#define NM_set_CMD
-#define rx_HMItoCWS
-#define rx_HMI_V
-#define rx_MCU_V
-#define rx_RRU_V
-#define rx_NU_V
-#define rx_DIAGtoCWS
 #endif
 // ----------------------------------------------------------------
 #ifdef node_NU
-#define rx_HMI_1
-#define rx_HMI_2
-#define rx_NM_get_INFO
-#define rx_NM_set_CMD
-#define rx_HMI_V
-#define rx_MCUtoDIAG
-#define rx_MCU_1
-#define rx_MCU_V
-#define rx_RRUtoDIAG
-#define rx_RRU_1
-#define rx_RRU_2
-#define rx_RRU_V
-#define rx_CWStoDIAG
-#define rx_CWS_1
-#define rx_CWS_V
-#define rx_NUtoDIAG
-#define rx_DIAGtoNU
+#define rx_elockInfo
+#define rx_HMIModuleIDBroadcasting
+#define rx_HMIErrorInfo
+#define rx_derailleurModuleIDBroadcasting
+#define rx_derailleurState
+#define rx_controllerModuleIDBroadcasting
+#define rx_controllerInfo01
+#define rx_controllerInfo02
+#define rx_controllerInfo03
+#define rx_controllerErrorInfo
+#define rx_battery1ModuleIDBroadcasting
+#define rx_battery1Info01
+#define rx_battery1Info02
+#define rx_battery1Info06
+#define rx_battery2ModuleIDBroadcasting
+#define rx_battery2Info01
+#define rx_battery2Info02
+#define rx_battery2Info06
+#define rx_dropperModuleIDBroadcasting
+#define rx_dropperErrorInfo
+#define rx_forkModuleIDBroadcasting
+#define rx_forkInfo01
+#define rx_forkErrorInfo
+#define rx_radarModuleIDBroadcasting
+#define rx_radarErrorInfo
 #endif
 // ----------------------------------------------------------------
-#ifdef node_DIAG
-#define rx_HMItoDIAG
-#define rx_HMI_V
-#define rx_MCUtoDIAG
-#define rx_MCU_V
-#define rx_RRUtoDIAG
-#define rx_RRU_V
-#define rx_CWStoDIAG
-#define rx_CWS_V
-#define rx_NUtoDIAG
-#define rx_NU_V
-#endif
-
-// -- verson ..
 
 // #define vCompanyId 1 // 2
 
@@ -148,8 +88,11 @@ public:
     CHC_PROTOCOL_HYENA2();
     unsigned int cal_crc32(const unsigned char *buf, int len, unsigned int init);
     
+    bool bfirstConsecutive;
     uint8_t operatingTime;
     uint8_t SME;
+    uint16_t paramlength;
+    uint32_t startAddress;    
     
     typedef union {
         float var;
@@ -255,7 +198,7 @@ public:
         uint8_t bytes[3];
     }U_PARAM_VERSION;
 
-    typedef struct __attribute((__packed__))
+    typedef struct //__attribute((__packed__))
     {
         uint8_t supported_distance;
         uint16_t frequency1;
@@ -264,7 +207,7 @@ public:
     }S_RADAR_PARAMS;
     //S_RADAR_PARAMS s_radar_params;
     uint8_t app_flag;
-    typedef struct __attribute((__packed__))
+    typedef struct //__attribute((__packed__))
     {
         U_MODID u_modid;
         U_BIKEID u_bikeid;
@@ -288,57 +231,150 @@ public:
         U_K_VERSION u_k_version;
         U_BOOTLOADER_V u_bootloader_v;
         U_PARAM_VERSION u_param_version;
+#ifdef node_RRU
         S_RADAR_PARAMS s_radar_params;
-    }S_ALL_PARAMETERS;
-    S_ALL_PARAMETERS s_all_parameters;
+#endif
+    }S_BIKE_PARAMETERS;
+    S_BIKE_PARAMETERS s_bike_parameters;
+
+#ifdef node_NU
+    typedef struct
+    {
+        uint8_t manufacturer;
+        uint8_t model;
+        uint8_t FWVersion;
+        uint8_t HWVersion;
+        uint8_t protocolVersion;
+        uint8_t SN[3];
+        uint16_t errorCode;
+    }S_BASIC_INFO;
+
+    typedef union
+    {
+        S_BASIC_INFO contents;
+        uint8_t bytes[sizeof(S_BASIC_INFO)];
+    }U_BASIC_INFO;
+    // typedef struct
+    // {
+    //     S_BASIC_INFO s_radar_basic_info;
+    //     uint16_t errorCode;
+    // }S_RADAR_INFO;
+
+    typedef struct
+    {
+        U_BASIC_INFO u_fork_basic_info;
+        uint8_t suspensionLevel;
+    }S_FORK_INFO;
+
+    typedef struct
+    {
+        U_BASIC_INFO u_battery_basic_info;
+        uint32_t batteryPercent; // %
+        int8_t temperature1; // 
+        int8_t temperature2; // 
+        int8_t temperature3; // 
+        int8_t temperature4; // 
+        int8_t temperature5; // 
+        int8_t temperature6; // 
+        int8_t temperature7; // 
+        int8_t temperature8; // 
+        uint32_t voltage; // mV
+        int32_t current; // mA
+    }S_BATTERY_INFO;
+
+    typedef struct
+    {
+        U_BASIC_INFO u_controller_basic_info;
+        uint16_t bikeSpeed; //0.01 km/h
+        uint16_t torque;
+        uint8_t lightStatus;
+        uint8_t assistLevel;
+        uint32_t odo; //m
+        uint8_t estimatedRange; //km
+        uint16_t cadence; //0.025 RPM
+    }S_CONTROLLER_INFO;
     
+    typedef struct
+    {
+        U_BASIC_INFO u_derailleur_basic_info;
+        uint8_t gearIndex;
+    }S_DERAILLEUR_INFO;
+
+    typedef struct 
+    {
+        U_BASIC_INFO u_elock_basic_info;
+        uint8_t elockStatus;
+    }S_ELOCK_INFO;
+
+    typedef struct
+    {
+        U_BASIC_INFO u_radar_info;
+        U_BASIC_INFO u_dropper_info;
+        U_BASIC_INFO u_hmi_info;
+        U_BASIC_INFO u_iot_info;
+        S_FORK_INFO s_fork_info;
+        S_BATTERY_INFO s_battery1_info;
+        S_BATTERY_INFO s_battery2_info;
+        S_CONTROLLER_INFO s_controller_info;
+        S_DERAILLEUR_INFO s_derailleur_info;
+        S_ELOCK_INFO s_elock_info;
+    }S_BIKE_INFO;
+
+    typedef union 
+    {
+        S_BIKE_INFO contents;
+        uint8_t bytes[sizeof(S_BIKE_INFO)];
+    }U_BIKE_INFO;   
+    
+#endif
     enum CAN_ID {
-        //Tool Control
-        TOOL_CONTROL = 0x309,
-        // DIAG ID
-        DIAGtoHMI = 0x772,
-        DIAGtoMCU = 0x774,
-        DIAGtoRRU = 0x775,
-        DIAGtoCWS = 0x776,
-        DIAGtoNU = 0x777,
+        // Console ID
+        BikeControl00 = 0x300,
+        ToolControl00 = 0x309,
+        // elock ID
+        eLockInfo = 0x633,
         // HMI ID
-        HMI_DIAG = 0x130,
-        HMI_ID1 = 0x140,
-        HMI_ID2 = 0x141,
-        NM_get_info = 0x14B,
-        NM_set_CMD = 0x14C,
-        HMItoRRU = 0x14D,
-        HMItoCWS = 0x14E,
-        HMI_V = 0x14F,        
-        // MCU ID
-        MCU_DIAG = 0x150,
-        MCU_ID1 = 0x160,
-        MCU_V = 0x16F,
-        // RRU ID        
+        HMIModuleIDBroadcasting = 0x14001,
+        HMIErrorInfo = 0x329,
+        // Controller ID
+        ControllerModuleIDBroadcasting = 0x13000,
+        ControllerInfo01 = 0x201,
+        ControllerInfo02 = 0x202,
+        ControllerInfo03 = 0x203,
+        ControllerErrorInfo = 0x209,
+        // Derailleur ID
+        DerailleurModuleIDBroadcasting = 0x1F000,
+        DerailleurState = 0x650,
+        // Dropper ID
+        DropperModuleIDBroadcasting = 0x1B000,
+        DropperErrorInfo = 0x559,
+        // Fork ID
+        ForkModuleIDBroadcasting = 0x13500,
+        ForkInfo01 = 0x751,
+        ForkErrorInfo = 0x759,
+        // Radar ID        
         RRU_FW_UPDATE_REQ = 0x190,
         RRU_FW_UPDATE_RP = 0x191,
         RRU_MODULE_ID_BROADCAST = 0x19000,
         RRU_MODULE_ID_READ = 0x19001,
-        RRU_INFO = 0x701,
-        RRU_ERR = 0x709,
+        RadarInfo01 = 0x701,
+        RadarErrorInfo = 0x709,
         RRU_PARAM_R_REQ = 0x70000,
         RRU_PARAM_R_RES = 0x70001,
         RRU_PARAM_W_REQ = 0x70002,
         RRU_PARAM_W_RES = 0x70003,
-
-        RRU_DIAG = 0x190,
-        RRU_ID1 = 0x1A0,
-        RRU_ID2 = 0x1A1,
-        RRU_V = 0x1AF,        
-        // CWS ID
-        CWS_DIAG = 0x1B0,
-        CWS_ID1 = 0x1C0,
-        CWS_V = 0x1CF,
-        // NU ID
-        NU_DIAG = 0x1D0,
-        NU_ID1 = 0x1E0,
-        NU_ID2 = 0x1E1,
-        NU_V = 0x1EF
+        // Battery1 ID
+        Battery1ModuleIDBroadcasting = 0x11000,
+        Battery1Info00 = 0x400,
+        Battery1Info01 = 0x401,
+        Battery1Info02 = 0x402,
+        Battery1Info06 = 0x406,
+        // Battery2 ID
+        Battery2ModuleIDBroadcasting = 0x12000,
+        Battery2Info00 = 0x450,
+        Battery2Info01 = 0x451,
+        Battery2Info02 = 0x452,
+        Battery2Info06 = 0x456,
     };
 
     typedef struct
@@ -417,6 +453,7 @@ public:
 
     typedef enum {
         NONE = 2,
+        ReadRadarParameters,
         REQ_ERC,
         REQ_MCU_INFO,
         REQ_RRU_INFO,
@@ -424,16 +461,9 @@ public:
         REQ_NU_INFO,
         REQ_RRU_ID,
         RRU_UPDATE,
-        SET_MCU_AWAKE,
-        SET_MCU_SLEEP,
         SET_RRU_AWAKE,
         SET_RRU_SLEEP,
         SET_RRU_PARAM,
-        SET_CWS_AWAKE,
-        SET_CWS_SLEEP,
-        SET_CWS_PARAM,
-        SET_NU_AWAKE,
-        SET_NU_SLEEP,
         PROCESS_DONE,
         GET_HMI,
         GET_MCU,
@@ -446,61 +476,9 @@ public:
 
     REQ_type rx();
 
-#ifdef node_HMI
-    bool HMItoDIAG(uint8_t error);
 
-    bool HMI_period(
-        uint8_t hr_status,
-        uint8_t hr_value,
-        uint8_t sport_mode);
 
-    bool MCU_setAssist(uint8_t u8Assist);
 
-    bool NM_getInfo(
-        bool getMCUInfo,
-        bool getRRUInfo,
-        bool getCWSInfo,
-        bool getNUInfo);
-
-    bool NM_CMD(
-        bool setMCU,
-        bool setRRU,
-        bool setCWS,
-        bool setNU);
-
-    bool RRU_setParam(
-        uint16_t distance,
-        uint8_t Hz);
-
-    bool CWS_setParam(
-        uint16_t u16Distance,
-        uint8_t u8Range);
-
-    bool HMI_version(
-        uint8_t protocol_major,
-        uint8_t protocol_minor,
-        uint8_t sw_major,
-        uint8_t sw_minor,
-        uint8_t hw_major,
-        uint8_t hw_minor);
-#endif
-
-#ifdef node_MCU
-    bool MCUtoDIAG(uint8_t error);
-    bool MCU_period(
-        uint8_t assist,
-        uint16_t torque,
-        uint16_t cadence,
-        uint16_t speed,
-        uint8_t battery);
-    bool MCU_version(
-        uint8_t protocol_major,
-        uint8_t protocol_minor,
-        uint8_t sw_major,
-        uint8_t sw_minor,
-        uint8_t hw_major,
-        uint8_t hw_minor);
-#endif
 
 #ifdef node_RRU
     bool RRUError(uint8_t ErrPage,uint8_t ErrCode);
@@ -519,7 +497,11 @@ public:
         uint8_t hw_minor);
 
     bool RRU_FWupdateRP(uint8_t dlc,uint8_t *payload);
-    bool RRU_ModIDBroadcast();
+    bool RadarModIDBroadcast();
+    bool RadarStartRead();
+    bool rxReadRadarParamSingleFrame();
+    bool rxReadRadarParamFlowControlFrame();
+    bool txReadRadarParamConsecutiveFrame();
     typedef enum {
         JumptoBootloader = 0x01,
         JumptoApp,
@@ -528,7 +510,7 @@ public:
         FlashProgram,
         Writedata,
         FlashVerify,
-        ParameterRead,
+        ParameterRead = 0x10,
         ParameterWrite,
         LogRead,
         LogClear,
@@ -547,25 +529,11 @@ public:
     } RPCode;
 
     typedef enum {
-        IDLE,
-        START,
-        ACCEPTING,
+        Idle,
+        Start,
+        Concetutive,
     }RWStatus;
-    RWStatus rwstatus;
-#endif
-
-#ifdef node_CWS
-    bool CWStoDIAG(uint8_t error);
-    bool CWS_period(
-        uint16_t distance,
-        uint8_t degree);
-    bool CWS_version(
-        uint8_t protocol_major,
-        uint8_t protocol_minor,
-        uint8_t sw_major,
-        uint8_t sw_minor,
-        uint8_t hw_major,
-        uint8_t hw_minor);
+    //RWStatus rwStatus;
 #endif
 
 #ifdef node_NU

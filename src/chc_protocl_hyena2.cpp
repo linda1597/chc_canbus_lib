@@ -10,10 +10,12 @@
 CAN_frame_t rx_msg;
 CAN_frame_t tx_msg;
 CHC_PROTOCOL_HYENA2 chcProtocol_hyena2;
+CHC_PROTOCOL_HYENA2::U_BIKE_INFO u_bike_info;
 
 CHC_PROTOCOL_HYENA2::CHC_PROTOCOL_HYENA2()
 {
-    s_all_parameters.u_modid.ID = 0x4D4944FFFFFFFFFF;
+    s_bike_parameters.u_modid.ID = 0x434843FFFFFFFFFF;
+    bfirstConsecutive = true;
     // 建構子
 }
 CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
@@ -29,202 +31,180 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
     // ----------------- 以下為接收到的資料 -----------------
     switch (rx_msg.identifier) {
 
-        // DIAG ID --------------------------------
-// ----------------------------------------------------------------
-#ifdef rx_DIAGtoHMI
-    case CHC_PROTOCOL_HYENA2::DIAGtoHMI: // = 0x772,
-        // return PROCESS_DONE;
-        return GET_DIAG;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_DIAGtoMCU
-    case CHC_PROTOCOL::DIAGtoMCU: // = 0x774,
-        // return PROCESS_DONE;
-        return GET_DIAG;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_DIAGtoRRU
-    case CHC_PROTOCOL_HYENA2::DIAGtoRRU: // = 0x775,
-        // return PROCESS_DONE;
-        return GET_DIAG;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_DIAGtoCWS
-    case CHC_PROTOCOL::DIAGtoCWS: // = 0x776,
-        // return PROCESS_DONE;
-        return GET_DIAG;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_DIAGtoNU
-    case CHC_PROTOCOL::DIAGtoNU: // = 0x777,
-        // return PROCESS_DONE;
-        return GET_DIAG;
-        break;
-#endif
-// HMI ID
-// ----------------------------------------------------------------
-#ifdef rx_HMItoDIAG
-    case CHC_PROTOCOL::HMI_DIAG: // = 0x130,
-                                 // all_dtc.HMI_DTC = rx_msg.data[0];
-        sData.dtc.HMI = rx_msg.data[0];
-        // return PROCESS_DONE;
-        return GET_HMI;
-        break;
-#endif
-
-// ----------------------------------------------------------------
-#ifdef rx_HMI_1
-    case CHC_PROTOCOL::HMI_ID1: // = 0x140,
-        sData.hmi.hr_status = rx_msg.data[0];
-        sData.hmi.hr_value = rx_msg.data[1];
-        sData.hmi.sport_mode = rx_msg.data[2];
-        return PROCESS_DONE;
-        break;
-#endif
-
-// ----------------------------------------------------------------
-#ifdef rx_HMI_2
-    case CHC_PROTOCOL::HMI_ID2: // = 0x141,
-
-        break;
-#endif
-
-// ----------------------------------------------------------------
-#ifdef rx_NM_get_INFO
-    case CHC_PROTOCOL_HYENA2::NM_get_info: // = 0x14B,
-
-        // ----------------------------------------------------------------
-#ifdef node_MCU
-        rx_msg.data[0] = rx_msg.data[0] & 0b00000011;
-        if (rx_msg.data[0] == 0b00000001) {
-            MCU_version(
-                protocol_Major,
-                protocol_Minor,
-                sw_Major,
-                sw_Minor,
-                hw_Major,
-                hw_Minor);
-            return REQ_MCU_INFO;
+        // HMI ID --------------------------------
+#ifdef rx_HMIModuleIDBroadcasting
+    case CHC_PROTOCOL_HYENA2::HMIModuleIDBroadcasting: //0x14001
+        for(uint8_t i = 0; i < 8; i++) 
+        {
+            u_bike_info.contents.u_hmi_info.bytes[i] = rx_msg.data[i];
         }
+        break;
 #endif
-
-        // ----------------------------------------------------------------
-#ifdef node_RRU
-        rx_msg.data[0] = rx_msg.data[0] & 0b00001100;
-        if (rx_msg.data[0] == 0b00000100) {
-            RRU_version(
-                protocol_Major,
-                protocol_Minor,
-                sw_Major,
-                sw_Minor,
-                hw_Major,
-                hw_Minor);
-            return REQ_RRU_INFO;
-        }
-#endif
-
-        // ----------------------------------------------------------------
-#ifdef node_CWS
-        rx_msg.data[0] = rx_msg.data[0] & 0b00110000;
-        if (rx_msg.data[0] == 0b00010000) {
-            CWS_version(
-                protocol_Major,
-                protocol_Minor,
-                sw_Major,
-                sw_Minor,
-                hw_Major,
-                hw_Minor);
-            return REQ_CWS_INFO;
-        }
-#endif
-
-        // ----------------------------------------------------------------
-#ifdef node_NU
-        rx_msg.data[0] = rx_msg.data[0] & 0b11000000;
-        if (rx_msg.data[0] == 0b01000000) {
-            NU_version(
-                protocol_Major,
-                protocol_Minor,
-                sw_Major,
-                sw_Minor,
-                hw_Major,
-                hw_Minor);
-            return REQ_NU_INFO;
-        }
-#endif
-        return NONE;
+#ifdef rx_HMIErrorInfo
+    case CHC_PROTOCOL_HYENA2::HMIErrorInfo: //0x329
+        u_bike_info.contents.u_hmi_info.contents.errorCode = rx_msg.data[0] | rx_msg.data[1]<<8;
         break;
 #endif
 // ----------------------------------------------------------------
-#ifdef rx_NM_set_CMD
-    case CHC_PROTOCOL_HYENA2::NM_set_CMD: // = 0x14C,
-
-        // ----------------------------------------------------------------
-#ifdef node_MCU
-        rx_msg.data[0] = rx_msg.data[0] & 0b00000011;
-        if (rx_msg.data[0] == 0b00000001) {
-            return SET_MCU_AWAKE;
+        // Derailleur ID --------------------------------
+#ifdef rx_derailleurModuleIDBroadcasting
+    case CHC_PROTOCOL_HYENA2::DerailleurModuleIDBroadcasting: //0x1F000
+        for(uint8_t i = 0; i < 8; i++) 
+        {
+            u_bike_info.contents.s_derailleur_info.u_derailleur_basic_info.bytes[i] = rx_msg.data[i];
         }
-        return SET_MCU_SLEEP;
-#endif
-        // ----------------------------------------------------------------
-#ifdef node_RRU
-        rx_msg.data[0] = rx_msg.data[0] & 0b00001100;
-        if (rx_msg.data[0] == 0b00000100) {
-            return SET_RRU_AWAKE;
-        }
-        return SET_RRU_SLEEP;
-
-#endif
-        // ----------------------------------------------------------------
-#ifdef node_CWS
-        rx_msg.data[0] = rx_msg.data[0] & 0b00110000;
-        if (rx_msg.data[0] == 0b00010000) {
-            return SET_CWS_AWAKE;
-        }
-        return SET_CWS_SLEEP;
-#endif
-#ifdef node_NU
-        rx_msg.data[0] = rx_msg.data[0] & 0b11000000;
-        if (rx_msg.data[0] == 0b01000000) {
-            return SET_NU_AWAKE;
-        }
-        return SET_NU_SLEEP;
-#endif
         break;
 #endif
-
-// ----------------------------------------------------------------
-#ifdef rx_HMItoRRU
-    case CHC_PROTOCOL_HYENA2::HMItoRRU: // = 0x14D,
-        sData.rru.set_detect_range = rx_msg.data[0] | (rx_msg.data[1] << 8);
-        sData.rru.set_bling_hz = rx_msg.data[2];
-        // return PROCESS_DONE;
-        return GET_HMI;
+#ifdef rx_derailleurState
+    case CHC_PROTOCOL_HYENA2::DerailleurState: //0x650
+        u_bike_info.contents.s_derailleur_info.gearIndex = rx_msg.data[0];
+        u_bike_info.contents.s_derailleur_info.u_derailleur_basic_info.contents.errorCode = rx_msg.data[1];
         break;
 #endif
 // ----------------------------------------------------------------
-#ifdef rx_HMItoCWS
-    case CHC_PROTOCOL::HMItoCWS: // = 0x14E,
-        sData.cws.set_detect_range = rx_msg.data[0] | (rx_msg.data[1] << 8);
-        // return PROCESS_DONE;
-        return GET_HMI;
+        // Fork ID ---------------------------------------------------
+#ifdef rx_forkModuleIDBroadcasting
+    case CHC_PROTOCOL_HYENA2::ForkModuleIDBroadcasting: //0x13500
+        for(uint8_t i = 0; i <8;i++)
+        {
+            u_bike_info.contents.s_fork_info.u_fork_basic_info.bytes[i] = rx_msg.data[i];
+        }
+        break;
+#endif
+#ifdef rx_forkInfo01
+    case CHC_PROTOCOL_HYENA2::ForkInfo01: //0x751
+        u_bike_info.contents.s_fork_info.suspensionLevel = rx_msg.data[0];
+        break;
+#endif
+#ifdef rx_forkErrorInfo
+    case CHC_PROTOCOL_HYENA2::ForkErrorInfo: //0x759
+        u_bike_info.contents.s_fork_info.u_fork_basic_info.contents.errorCode = rx_msg.data[0]|rx_msg.data[1]<<8;
         break;
 #endif
 // ----------------------------------------------------------------
-#ifdef rx_HMI_V
-    case CHC_PROTOCOL_HYENA2::HMI_V: // = 0x14F,
-        for (uint8_t i = 0; i < 6; i++) {
-            sData.ver.HMI[i] = rx_msg.data[i];
+        // Controller ID --------------------------------
+#ifdef rx_controllerModuleIDBroadcasting
+    case CHC_PROTOCOL_HYENA2::ControllerModuleIDBroadcasting: // 0x13000
+        for(uint8_t i=0; i<8; i++)
+        {
+            u_bike_info.contents.s_controller_info.u_controller_basic_info.bytes[i] = rx_msg.data[i];
         }
-        // return PROCESS_DONE;
-        return GET_HMI;
         break;
 #endif
+#ifdef rx_controllerInfo01
+    case CHC_PROTOCOL_HYENA2::ControllerInfo01: // 0x201
+        u_bike_info.contents.s_controller_info.bikeSpeed =  rx_msg.data[0]|rx_msg.data[1]<<8;
+        u_bike_info.contents.s_controller_info.torque = rx_msg.data[2]|rx_msg.data[3]<<8;
+        u_bike_info.contents.s_controller_info.lightStatus = (rx_msg.data[4] >>1) & 0x01;
+        u_bike_info.contents.s_controller_info.assistLevel = (rx_msg.data[4] >>7) & 0x01;
+        break;
+#endif
+#ifdef rx_controllerInfo02
+    case CHC_PROTOCOL_HYENA2::ControllerInfo02: //0x202
+        u_bike_info.contents.s_controller_info.odo = rx_msg.data[4] | rx_msg.data[5] <<8 | rx_msg.data[6] <<16 | rx_msg.data[7] <<24;
+        break;
+#endif
+#ifdef rx_controllerInfo03
+    case CHC_PROTOCOL_HYENA2::ControllerInfo03: //0x203
+        u_bike_info.contents.s_controller_info.cadence = rx_msg.data[0] | rx_msg.data[1] <<8;
+        u_bike_info.contents.s_controller_info.estimatedRange = rx_msg.data[6] | (rx_msg.data[7] & 0x0F)<<8;
+        break;
+#endif
+#ifdef rx_controllerErrorInfo
+    case CHC_PROTOCOL_HYENA2::ControllerErrorInfo: //0x209
+        u_bike_info.contents.s_controller_info.u_controller_basic_info.contents.errorCode = rx_msg.data[0]|rx_msg.data[1]<<8;
+        break;
+#endif
+// ----------------------------------------------------------------
+        // eLock ID --------------------------------
+#ifdef rx_elockInfo
+    case CHC_PROTOCOL_HYENA2::eLockInfo: //0x633
+        u_bike_info.contents.s_elock_info.elockStatus = rx_msg.data[2];
+        break;
+#endif
+// ----------------------------------------------------------------
+        // Dropper ID --------------------------------
+#ifdef rx_dropperModuleIDBroadcasting
+    case CHC_PROTOCOL_HYENA2::DropperModuleIDBroadcasting: //0x1B000
+        for(uint8_t i=0; i<8; i++)
+        {
+            u_bike_info.contents.u_dropper_info.bytes[i] = rx_msg.data[i];
+        }
+        break;
+#endif
+#ifdef rx_dropperErrorInfo
+    case CHC_PROTOCOL_HYENA2::DropperErrorInfo: //0x559
+        u_bike_info.contents.u_dropper_info.contents.errorCode = rx_msg.data[0]|rx_msg.data[1]<<8;
+        break;
+#endif
+// ----------------------------------------------------------------
+        // Battery ID --------------------------------
+#ifdef rx_battery1ModuleIDBroadcasting
+    case CHC_PROTOCOL_HYENA2::Battery1ModuleIDBroadcasting: //0x11000
+        for(uint8_t i=0; i<8; i++)
+        {
+            u_bike_info.contents.s_battery1_info.u_battery_basic_info.bytes[i] = rx_msg.data[i];
+        }
+        break;
+#endif
+#ifdef rx_battery1Info01
+    case CHC_PROTOCOL_HYENA2::Battery1Info01: //0x401
+        u_bike_info.contents.s_battery1_info.voltage = (uint32_t)rx_msg.data[0]|(uint32_t)rx_msg.data[1]<<8|(uint32_t)rx_msg.data[2]<<16|(uint32_t)rx_msg.data[3]<<24;
+        u_bike_info.contents.s_battery1_info.current = (int32_t)rx_msg.data[4]|(int32_t)rx_msg.data[5]<<8|(int32_t)rx_msg.data[6]<<16|(int32_t)rx_msg.data[7]<<24;
+        break;
+#endif
+#ifdef rx_battery1Info02
+    case CHC_PROTOCOL_HYENA2::Battery1Info02: //0x402
+        u_bike_info.contents.s_battery1_info.batteryPercent = (uint32_t)rx_msg.data[0];
+        break;
+#endif
+#ifdef rx_battery1Info06
+    case CHC_PROTOCOL_HYENA2::Battery1Info06: //0x406
+        u_bike_info.contents.s_battery1_info.temperature1 = (int8_t)rx_msg.data[0];
+        u_bike_info.contents.s_battery1_info.temperature2 = (int8_t)rx_msg.data[1];
+        u_bike_info.contents.s_battery1_info.temperature3 = (int8_t)rx_msg.data[2];
+        u_bike_info.contents.s_battery1_info.temperature4 = (int8_t)rx_msg.data[3];
+        u_bike_info.contents.s_battery1_info.temperature5 = (int8_t)rx_msg.data[4];
+        u_bike_info.contents.s_battery1_info.temperature6 = (int8_t)rx_msg.data[5];
+        u_bike_info.contents.s_battery1_info.temperature7 = (int8_t)rx_msg.data[6];
+        u_bike_info.contents.s_battery1_info.temperature8 = (int8_t)rx_msg.data[7];
+        break;
+#endif
+#ifdef rx_battery2ModuleIDBroadcasting
+    case CHC_PROTOCOL_HYENA2::Battery2ModuleIDBroadcasting: //0x11000
+        for(uint8_t i=0; i<8; i++)
+        {
+            u_bike_info.contents.s_battery2_info.u_battery_basic_info.bytes[i] = rx_msg.data[i];
+        }
+        break;
+#endif
+#ifdef rx_battery2Info01
+    case CHC_PROTOCOL_HYENA2::Battery2Info01: //0x451
+        u_bike_info.contents.s_battery2_info.voltage = (uint32_t)rx_msg.data[0]|(uint32_t)rx_msg.data[1]<<8|(uint32_t)rx_msg.data[2]<<16|(uint32_t)rx_msg.data[3]<<24;
+        u_bike_info.contents.s_battery2_info.current = (int32_t)rx_msg.data[4]|(int32_t)rx_msg.data[5]<<8|(int32_t)rx_msg.data[6]<<16|(int32_t)rx_msg.data[7]<<24;
+        break;
+#endif
+#ifdef rx_battery2Info02
+    case CHC_PROTOCOL_HYENA2::Battery2Info02: //0x452
+        u_bike_info.contents.s_battery2_info.batteryPercent = (uint32_t)rx_msg.data[0];
+        break;
+#endif
+#ifdef rx_battery2Info06
+    case CHC_PROTOCOL_HYENA2::Battery2Info06: //0x456
+        u_bike_info.contents.s_battery2_info.temperature1 = (int8_t)rx_msg.data[0];
+        u_bike_info.contents.s_battery2_info.temperature2 = (int8_t)rx_msg.data[1];
+        u_bike_info.contents.s_battery2_info.temperature3 = (int8_t)rx_msg.data[2];
+        u_bike_info.contents.s_battery2_info.temperature4 = (int8_t)rx_msg.data[3];
+        u_bike_info.contents.s_battery2_info.temperature5 = (int8_t)rx_msg.data[4];
+        u_bike_info.contents.s_battery2_info.temperature6 = (int8_t)rx_msg.data[5];
+        u_bike_info.contents.s_battery2_info.temperature7 = (int8_t)rx_msg.data[6];
+        u_bike_info.contents.s_battery2_info.temperature8 = (int8_t)rx_msg.data[7];
+        break;
+#endif
+// ----------------------------------------------------------------
+
+
+
 #ifdef rx_update_rru_FW
     case CHC_PROTOCOL_HYENA2::RRU_FW_UPDATE_REQ:
         return RRU_UPDATE;
@@ -232,167 +212,37 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
 #endif
 #ifdef rx_read_rru_modID
     case CHC_PROTOCOL_HYENA2::RRU_MODULE_ID_READ:
-        RRU_ModIDBroadcast();
+        RadarModIDBroadcast();
         return REQ_RRU_ID;
         break;
 #endif
 #ifdef rx_tool_control
-    case CHC_PROTOCOL_HYENA2::TOOL_CONTROL:
-        this->operatingTime = rx_msg.data[0];
-        this->SME = rx_msg.data[1];
+    case CHC_PROTOCOL_HYENA2::ToolControl00:
+         this->operatingTime = rx_msg.data[0];
+         this->SME = rx_msg.data[1];
         return GET_TOOL_CTRL;
         break;
 #endif
 #ifdef rx_read_rru_params
     case CHC_PROTOCOL_HYENA2::RRU_PARAM_R_REQ:
+
         break;
 #endif
 #ifdef rx_write_rru_params
     case CHC_PROTOCOL_HYENA2::RRU_PARAM_W_REQ:
         break;
 #endif
-// MCU ID
-// ----------------------------------------------------------------
-#ifdef rx_MCUtoDIAG
-    case CHC_PROTOCOL::MCU_DIAG: // = 0x150,
-        sData.dtc.MCU = rx_msg.data[0];
-        // return PROCESS_DONE;
-        return GET_MCU;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_MCU_1
-    case CHC_PROTOCOL::MCU_ID1: // = 0x160,
-        sData.mcu.assist = rx_msg.data[0];
-        sData.mcu.torque = rx_msg.data[1] | (rx_msg.data[2] << 8);
-        sData.mcu.cadence = rx_msg.data[3] | (rx_msg.data[4] << 8);
-        sData.mcu.speed = rx_msg.data[5] | (rx_msg.data[6] << 8);
-        sData.mcu.battery = rx_msg.data[7];
-
-        // return PROCESS_DONE;
-        return GET_MCU;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_MCU_V
-    case CHC_PROTOCOL_HYENA2::MCU_V: // = 0x16F,
-        for (uint8_t i = 0; i < 6; i++) {
-            sData.ver.MCU[i] = rx_msg.data[i];
-        }
-        // return PROCESS_DONE;
-        return GET_MCU;
-        break;
-#endif
 // RRU ID
 // ----------------------------------------------------------------
-#ifdef rx_RRUtoDIAG
-    case CHC_PROTOCOL::RRU_DIAG: // = 0x190,
-        sData.dtc.RRU = rx_msg.data[0];
+#ifdef rx_radarErrorInfo
+    case CHC_PROTOCOL_HYENA2::RadarErrorInfo: // = 0x709,
+        //sData.dtc.RRU = rx_msg.data[0];
+        u_bike_info.contents.u_radar_info.contents.errorCode = rx_msg.data[0] | (rx_msg.data[1] << 8);
         // return PROCESS_DONE;
-        return GET_RRU;
+        //return GET_RRU;
         break;
 #endif
 // ----------------------------------------------------------------
-#ifdef rx_RRU_1
-    case CHC_PROTOCOL::RRU_ID1: // = 0x1A0,
-        sData.rru.id = rx_msg.data[0];
-        sData.rru.distance = rx_msg.data[1] | (rx_msg.data[2] << 8);
-        sData.rru.speed = rx_msg.data[3] | (rx_msg.data[4] << 8);
-        sData.rru.angle = rx_msg.data[5];
-
-        // return PROCESS_DONE;
-        return GET_RRU;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_RRU_2
-    case CHC_PROTOCOL::RRU_ID2: // = 0x1A1,
-        sData.rru.status_alarm_L = rx_msg.data[0];
-        sData.rru.status_alarm_R = rx_msg.data[1];
-        sData.rru.status_light = rx_msg.data[2];
-
-        // return PROCESS_DONE;
-        return GET_RRU;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_RRU_V
-    case CHC_PROTOCOL_HYENA2::RRU_V: // = 0x1AF,
-        for (uint8_t i = 0; i < 6; i++) {
-            sData.ver.RRU[i] = rx_msg.data[i];
-        }
-        // return PROCESS_DONE;
-        return GET_RRU;
-        break;
-#endif
-// CWS ID
-// ----------------------------------------------------------------
-#ifdef rx_CWStoDIAG
-    case CHC_PROTOCOL::CWS_DIAG: // = 0x1B0,
-        sData.dtc.CWS = rx_msg.data[0];
-        // return PROCESS_DONE;
-        return GET_CWS;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_CWS_1
-    case CHC_PROTOCOL::CWS_ID1: // = 0x1C0,
-        sData.cws.distance = rx_msg.data[0] | (rx_msg.data[1] << 8);
-        sData.cws.angle = rx_msg.data[2];
-
-        // return PROCESS_DONE;
-        return GET_CWS;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_CWS_V
-    case CHC_PROTOCOL_HYENA2::CWS_V: // = 0x1CF,
-        for (uint8_t i = 0; i < 6; i++) {
-            sData.ver.CWS[i] = rx_msg.data[i];
-        }
-        // return PROCESS_DONE;
-        return GET_CWS;
-        break;
-#endif
-// NU ID
-// ----------------------------------------------------------------
-#ifdef rx_NUtoDIAG
-    case CHC_PROTOCOL::NU_DIAG: // = 0x1D0,
-        sData.dtc.NU = rx_msg.data[0];
-        return GET_NU;
-        // return PROCESS_DONE;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_NU_1
-    case CHC_PROTOCOL::NU_ID1: // = 0x1E0,
-        sData.nu.longitude = rx_msg.data[0] | (rx_msg.data[1] << 8) | (rx_msg.data[2] << 16) | (rx_msg.data[3] << 24);
-        sData.nu.latitude = rx_msg.data[4] | (rx_msg.data[5] << 8) | (rx_msg.data[6] << 16) | (rx_msg.data[7] << 24);
-
-        return GET_NU;
-        // return PROCESS_DONE;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_NU_2
-    case CHC_PROTOCOL::NU_ID2: // = 0x1E1,
-        sData.nu.altitude = rx_msg.data[0] | (rx_msg.data[1] << 8);
-        sData.nu.speed = rx_msg.data[2] | (rx_msg.data[3] << 8);
-
-        return GET_NU;
-        // return PROCESS_DONE;
-        break;
-#endif
-// ----------------------------------------------------------------
-#ifdef rx_NU_V
-    case CHC_PROTOCOL_HYENA2::NU_V: // = 0x1EF
-        for (uint8_t i = 0; i < 6; i++) {
-            sData.ver.NU[i] = rx_msg.data[i];
-        }
-        return GET_NU;
-        // return PROCESS_DONE;
-        break;
-#endif
         // ----------------------------------------------------------------
     default:
         return PROCESS_DONE;
@@ -400,216 +250,13 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
     }
     return PROCESS_DONE;
 }
-#ifdef node_HMI
-// 診斷碼
-bool CHC_PROTOCOL_HYENA2::HMItoDIAG(uint8_t error)
-{
-    tx_msg.identifier = HMI_DIAG;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 1;
-    tx_msg.data[0] = error;
-    return CAN_base_transmit(&tx_msg);
-}
-/**
- * @brief 傳送心跳裝置連線狀態、心跳、運動模式
- * @param hr_status 心跳裝置連線狀態
- * @param hr_value 心跳
- * @param sport_mode 運動模式，0：休閒，1：運動，2：訓練
-*/
-bool CHC_PROTOCOL::HMI_period(
-    uint8_t hr_status,
-    uint8_t hr_value,
-    uint8_t sport_mode)
-{
-    tx_msg.identifier = HMI_ID1;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 3;
-    tx_msg.data[0] = hr_status;
-    tx_msg.data[1] = hr_value;
-    tx_msg.data[2] = sport_mode;
-    return CAN_base_transmit(&tx_msg);
-}
 
-// 設定輔助力
-bool CHC_PROTOCOL::MCU_setAssist(uint8_t u8Assist)
-{
-    tx_msg.identifier = HMI_ID2;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 1;
-    tx_msg.data[0] = u8Assist;
-    return CAN_base_transmit(&tx_msg);
-}
 
-// NM獲取其他部件資訊
-bool CHC_PROTOCOL::NM_getInfo(
-    bool getMCUInfo,
-    bool getRRUInfo,
-    bool getCWSInfo,
-    bool getNUInfo)
-{
-    uint8_t flag = 0b00000000;
-    if (getMCUInfo == 1)
-        flag = flag | 0b00000001;
-    if (getRRUInfo == 1)
-        flag = flag | 0b00000100;
-    if (getCWSInfo == 1)
-        flag = flag | 0b00010000;
-    if (getNUInfo == 1)
-        flag = flag | 0b01000000;
-
-    tx_msg.identifier = NM_get_info;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 1;
-    tx_msg.data[0] = flag;
-    return CAN_base_transmit(&tx_msg);
-}
-
-/* NM指令
-   0:休眠
-   1:開機 */
-bool CHC_PROTOCOL::NM_CMD(
-    bool setMCU,
-    bool setRRU,
-    bool setCWS,
-    bool setNU)
-{
-    uint8_t flag = 0b00000000;
-    if (setMCU == 1)
-        flag = flag | 0b00000001;
-    if (setRRU == 1)
-        flag = flag | 0b00000100;
-    if (setCWS == 1)
-        flag = flag | 0b00010000;
-    if (setNU == 1)
-        flag = flag | 0b01000000;
-
-    tx_msg.identifier = NM_set_CMD;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 1;
-    tx_msg.data[0] = flag;
-    return CAN_base_transmit(&tx_msg);
-}
-
-// 設定RRU警示距離、警示LED閃爍頻率
-bool CHC_PROTOCOL::RRU_setParam(
-    uint16_t distance,
-    uint8_t Hz)
-{
-    tx_msg.identifier = HMItoRRU;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 3;
-    tx_msg.data[0] = distance;
-    tx_msg.data[1] = distance >> 8;
-    tx_msg.data[2] = Hz;
-    return CAN_base_transmit(&tx_msg);
-}
-
-// 設定CWS警示距離
-bool CHC_PROTOCOL::CWS_setParam(
-    uint16_t u16Distance,
-    uint8_t u8Range)
-{
-    tx_msg.identifier = HMItoCWS;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 3;
-    tx_msg.data[0] = u16Distance;
-    tx_msg.data[1] = u16Distance >> 8;
-    tx_msg.data[2] = u8Range;
-    return CAN_base_transmit(&tx_msg);
-}
-
-// 傳送版本資訊
-bool CHC_PROTOCOL::HMI_version(
-    uint8_t protocol_major,
-    uint8_t protocol_minor,
-    uint8_t sw_major,
-    uint8_t sw_minor,
-    uint8_t hw_major,
-    uint8_t hw_minor)
-{
-    tx_msg.identifier = HMI_V;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 6;
-    tx_msg.data[0] = protocol_major;
-    tx_msg.data[1] = protocol_minor;
-    tx_msg.data[2] = sw_major;
-    tx_msg.data[3] = sw_minor;
-    tx_msg.data[4] = hw_major;
-    tx_msg.data[5] = hw_minor;
-    return CAN_base_transmit(&tx_msg);
-}
-#endif
-#ifdef node_MCU
-// 診斷碼
-bool CHC_PROTOCOL::MCUtoDIAG(uint8_t error)
-{
-    tx_msg.identifier = MCU_DIAG;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 1;
-    tx_msg.data[0] = error;
-    return CAN_base_transmit(&tx_msg);
-}
-
-// 傳送扭力、踏頻、速度、電量
-bool CHC_PROTOCOL::MCU_period(
-    uint8_t support,
-    uint16_t torque,
-    uint16_t cadence,
-    uint16_t speed,
-    uint8_t battery)
-{
-
-    tx_msg.identifier = MCU_ID1;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 8;
-    tx_msg.data[0] = support; // 輔助力段位
-    tx_msg.data[1] = torque; // 扭力_L
-    tx_msg.data[2] = torque >> 8; // 扭力_H
-    tx_msg.data[3] = cadence; // 踏頻_L
-    tx_msg.data[4] = cadence >> 8; // 踏頻_H
-    tx_msg.data[5] = speed; // 速度_L
-    tx_msg.data[6] = speed >> 8; // 速度_H
-    tx_msg.data[7] = battery; // 電量
-    return CAN_base_transmit(&tx_msg);
-}
-
-// 傳送版本資訊
-bool CHC_PROTOCOL::MCU_version(
-    uint8_t protocol_major,
-    uint8_t protocol_minor,
-    uint8_t sw_major,
-    uint8_t sw_minor,
-    uint8_t hw_major,
-    uint8_t hw_minor)
-{
-    tx_msg.identifier = MCU_V;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 6;
-    tx_msg.data[0] = protocol_major;
-    tx_msg.data[1] = protocol_minor;
-    tx_msg.data[2] = sw_major;
-    tx_msg.data[3] = sw_minor;
-    tx_msg.data[4] = hw_major;
-    tx_msg.data[5] = hw_minor;
-    return CAN_base_transmit(&tx_msg);
-}
-#endif
 #ifdef node_RRU
 // 診斷碼
 bool CHC_PROTOCOL_HYENA2::RRUError(uint8_t ErrPage, uint8_t ErrCode)
 {
-    tx_msg.identifier = RRU_ERR;
+    tx_msg.identifier = RadarErrorInfo;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 2;
@@ -626,7 +273,7 @@ bool CHC_PROTOCOL_HYENA2::RRU_Info(
     uint8_t degree,
     uint8_t status)
 {
-    tx_msg.identifier = RRU_INFO;
+    tx_msg.identifier = RadarInfo01;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 7;
@@ -639,26 +286,63 @@ bool CHC_PROTOCOL_HYENA2::RRU_Info(
     tx_msg.data[6] = status;
     return CAN_base_transmit(&tx_msg);
 }
-
-// 傳送版本資訊
-bool CHC_PROTOCOL_HYENA2::RRU_version(
-    uint8_t protocol_major,
-    uint8_t protocol_minor,
-    uint8_t sw_major,
-    uint8_t sw_minor,
-    uint8_t hw_major,
-    uint8_t hw_minor)
+/*ISO TP部分施工中*/
+bool CHC_PROTOCOL_HYENA2::rxReadRadarParamSingleFrame()
 {
-    tx_msg.identifier = RRU_V;
-    tx_msg.extd = 0;
+    if(rx_msg.data[0] == 0x06 && rx_msg.data[1] == ParameterRead)
+    {
+        startAddress = (uint32_t)rx_msg.data[2] | (uint32_t)rx_msg.data[3]<<8 | (uint32_t)rx_msg.data[4]<<16;
+        paramlength = (uint16_t)rx_msg.data[5] | (uint16_t)rx_msg.data[6]<<8;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool CHC_PROTOCOL_HYENA2::rxReadRadarParamFlowControlFrame()
+{
+    if(rx_msg.data[0] == 0x30 && rx_msg.data[1] == 0x00 && rx_msg.data[2] == 0x00)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool CHC_PROTOCOL_HYENA2::txReadRadarParamConsecutiveFrame()
+{
+    tx_msg.identifier = RRU_PARAM_R_RES;
+    tx_msg.extd = 1;
     tx_msg.rtr = 0;
-    tx_msg.data_length_code = 6;
-    tx_msg.data[0] = protocol_major;
-    tx_msg.data[1] = protocol_minor;
-    tx_msg.data[2] = sw_major;
-    tx_msg.data[3] = sw_minor;
-    tx_msg.data[4] = hw_major;
-    tx_msg.data[5] = hw_minor;
+    if(bfirstConsecutive == true)
+    {
+        if(paramlength > 2)
+        {
+            paramlength  = paramlength-2;
+            
+        }
+        bfirstConsecutive = false;
+    }
+}
+
+bool CHC_PROTOCOL_HYENA2::RadarStartRead()
+{
+    tx_msg.identifier = RRU_PARAM_R_RES;
+    tx_msg.extd = 1;
+    tx_msg.rtr = 0;
+    tx_msg.data_length_code = 8;
+    tx_msg.data[0] = 0x10;
+    tx_msg.data[1] = 11+paramlength;
+    tx_msg.data[2] = 0x10;
+    tx_msg.data[3] = 0x00;
+    tx_msg.data[4] = (uint8_t)startAddress;
+    tx_msg.data[5] = uint8_t(startAddress>>8);
+    tx_msg.data[6] = uint8_t(startAddress>>16);
+    tx_msg.data[7] = (uint8_t)paramlength;
     return CAN_base_transmit(&tx_msg);
 }
 
@@ -676,145 +360,19 @@ bool CHC_PROTOCOL_HYENA2::RRU_FWupdateRP(
     return CAN_base_transmit(&tx_msg);    
 }
 
-bool CHC_PROTOCOL_HYENA2::RRU_ModIDBroadcast()
+bool CHC_PROTOCOL_HYENA2::RadarModIDBroadcast()
 {
     tx_msg.identifier = RRU_MODULE_ID_BROADCAST;
     tx_msg.extd = 1;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 8;
     for(uint8_t i=0; i<8; i++){
-        tx_msg.data[i] = s_all_parameters.u_modid.bytes[i];
+        tx_msg.data[i] = s_bike_parameters.u_modid.bytes[i];
     }
     return CAN_base_transmit(&tx_msg);
 }
 #endif
-#ifdef node_CWS
-c
-    // 診斷碼
-    bool
-    CHC_PROTOCOL::CWStoDIAG(uint8_t error)
-{
-    tx_msg.identifier = CWS_DIAG;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 1;
-    tx_msg.data[0] = error;
-    return CAN_base_transmit(&tx_msg);
-}
 
-// 坑洞資訊
-bool CHC_PROTOCOL::CWS_period(
-    uint16_t distance,
-    uint8_t degree)
-{
-    tx_msg.identifier = CWS_ID1;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 3;
-    tx_msg.data[0] = distance;
-    tx_msg.data[1] = distance >> 8;
-    tx_msg.data[2] = degree;
-    return CAN_base_transmit(&tx_msg);
-}
-
-// 傳送版本資訊
-bool CHC_PROTOCOL::CWS_version(
-    uint8_t protocol_major,
-    uint8_t protocol_minor,
-    uint8_t sw_major,
-    uint8_t sw_minor,
-    uint8_t hw_major,
-    uint8_t hw_minor)
-{
-    tx_msg.identifier = CWS_V;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 6;
-    tx_msg.data[0] = protocol_major;
-    tx_msg.data[1] = protocol_minor;
-    tx_msg.data[2] = sw_major;
-    tx_msg.data[3] = sw_minor;
-    tx_msg.data[4] = hw_major;
-    tx_msg.data[5] = hw_minor;
-    return CAN_base_transmit(&tx_msg);
-}
-#endif
-#ifdef node_NU
-
-// 診斷碼
-bool CHC_PROTOCOL::NUtoDIAG(uint8_t error)
-{
-    tx_msg.identifier = NU_DIAG;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 1;
-    tx_msg.data[0] = error;
-    return CAN_base_transmit(&tx_msg);
-}
-
-// 經度、緯度
-bool CHC_PROTOCOL::NU_period1(
-    float longitude,
-    float latitude)
-{
-    U_float2bytes trans;
-    tx_msg.identifier = NU_ID1;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 8;
-    trans.var = latitude;
-
-    for (int i = 0; i < 4; i++) {
-        tx_msg.data[i] = trans.array[3 - i];
-    }
-    trans.var = latitude;
-
-    for (int i = 0; i < 4; i++) {
-        tx_msg.data[i + 4] = trans.array[3 - i];
-    }
-
-    return CAN_base_transmit(&tx_msg);
-}
-
-// 海拔、速度、模組連網狀態
-bool CHC_PROTOCOL::NU_period2(
-    uint16_t altitude,
-    uint16_t speed,
-    uint8_t status)
-{
-    tx_msg.identifier = NU_ID2;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 5;
-    tx_msg.data[0] = (uint8_t)altitude;
-    tx_msg.data[1] = (uint8_t)altitude >> 8;
-    tx_msg.data[2] = (uint8_t)speed;
-    tx_msg.data[3] = (uint8_t)speed >> 8;
-    tx_msg.data[4] = status;
-    return CAN_base_transmit(&tx_msg);
-}
-
-bool CHC_PROTOCOL::NU_version(
-    uint8_t protocol_major,
-    uint8_t protocol_minor,
-    uint8_t sw_major,
-    uint8_t sw_minor,
-    uint8_t hw_major,
-    uint8_t hw_minor)
-{
-    tx_msg.identifier = NU_V;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 6;
-    tx_msg.data[0] = protocol_major;
-    tx_msg.data[1] = protocol_minor;
-    tx_msg.data[2] = sw_major;
-    tx_msg.data[3] = sw_minor;
-    tx_msg.data[4] = hw_major;
-    tx_msg.data[5] = hw_minor;
-    return CAN_base_transmit(&tx_msg);
-}
-#endif
 
 static const unsigned int crc32_table[] =
     {
