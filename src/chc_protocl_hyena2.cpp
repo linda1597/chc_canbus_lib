@@ -206,12 +206,12 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
 
 
 #ifdef rx_update_rru_FW
-    case CHC_PROTOCOL_HYENA2::RRU_FW_UPDATE_REQ:
+    case CHC_PROTOCOL_HYENA2::UpdateRadarFW:
         return RRU_UPDATE;
         break;
 #endif
 #ifdef rx_read_rru_modID
-    case CHC_PROTOCOL_HYENA2::RRU_MODULE_ID_READ:
+    case CHC_PROTOCOL_HYENA2::RequestRadarModuleIDBroadcast:
         RadarModIDBroadcast();
         return REQ_RRU_ID;
         break;
@@ -224,12 +224,12 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
         break;
 #endif
 #ifdef rx_read_rru_params
-    case CHC_PROTOCOL_HYENA2::RRU_PARAM_R_REQ:
+    case CHC_PROTOCOL_HYENA2::ReadRadarParameter:
 
         break;
 #endif
 #ifdef rx_write_rru_params
-    case CHC_PROTOCOL_HYENA2::RRU_PARAM_W_REQ:
+    case CHC_PROTOCOL_HYENA2::WriteRadarParameter:
         break;
 #endif
 // RRU ID
@@ -254,7 +254,7 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
 
 #ifdef node_RRU
 // 診斷碼
-bool CHC_PROTOCOL_HYENA2::RRUError(uint8_t ErrPage, uint8_t ErrCode)
+bool CHC_PROTOCOL_HYENA2::radarErrorInfo(uint8_t ErrPage, uint8_t ErrCode)
 {
     tx_msg.identifier = RadarErrorInfo;
     tx_msg.extd = 0;
@@ -266,7 +266,7 @@ bool CHC_PROTOCOL_HYENA2::RRUError(uint8_t ErrPage, uint8_t ErrCode)
 }
 
 // 傳送偵測物體ID、距離、速度、角度、警戒狀態
-bool CHC_PROTOCOL_HYENA2::RRU_Info(
+bool CHC_PROTOCOL_HYENA2::radarInfo01(
     uint8_t id,
     uint16_t speed,
     uint16_t distance,
@@ -315,7 +315,7 @@ bool CHC_PROTOCOL_HYENA2::rxReadRadarParamFlowControlFrame()
 
 bool CHC_PROTOCOL_HYENA2::txReadRadarParamConsecutiveFrame()
 {
-    tx_msg.identifier = RRU_PARAM_R_RES;
+    tx_msg.identifier = ReadRadarParameterResponse;
     tx_msg.extd = 1;
     tx_msg.rtr = 0;
     if(bfirstConsecutive == true)
@@ -331,7 +331,7 @@ bool CHC_PROTOCOL_HYENA2::txReadRadarParamConsecutiveFrame()
 
 bool CHC_PROTOCOL_HYENA2::RadarStartRead()
 {
-    tx_msg.identifier = RRU_PARAM_R_RES;
+    tx_msg.identifier = ReadRadarParameterResponse;
     tx_msg.extd = 1;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 8;
@@ -350,7 +350,7 @@ bool CHC_PROTOCOL_HYENA2::RRU_FWupdateRP(
     uint8_t dlc,
     uint8_t *payload)
 {
-    tx_msg.identifier = RRU_FW_UPDATE_RP;
+    tx_msg.identifier = UpdateRadarFWResponse;
     tx_msg.extd = 0;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = dlc;
@@ -362,7 +362,7 @@ bool CHC_PROTOCOL_HYENA2::RRU_FWupdateRP(
 
 bool CHC_PROTOCOL_HYENA2::RadarModIDBroadcast()
 {
-    tx_msg.identifier = RRU_MODULE_ID_BROADCAST;
+    tx_msg.identifier = RadarModuleIDBroadcast;
     tx_msg.extd = 1;
     tx_msg.rtr = 0;
     tx_msg.data_length_code = 8;

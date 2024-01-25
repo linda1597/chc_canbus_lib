@@ -353,16 +353,16 @@ public:
         ForkInfo01 = 0x751,
         ForkErrorInfo = 0x759,
         // Radar ID        
-        RRU_FW_UPDATE_REQ = 0x190,
-        RRU_FW_UPDATE_RP = 0x191,
-        RRU_MODULE_ID_BROADCAST = 0x19000,
-        RRU_MODULE_ID_READ = 0x19001,
+        UpdateRadarFW = 0x190,
+        UpdateRadarFWResponse = 0x191,
+        RadarModuleIDBroadcast = 0x19000,
+        RequestRadarModuleIDBroadcast = 0x19001,
         RadarInfo01 = 0x701,
         RadarErrorInfo = 0x709,
-        RRU_PARAM_R_REQ = 0x70000,
-        RRU_PARAM_R_RES = 0x70001,
-        RRU_PARAM_W_REQ = 0x70002,
-        RRU_PARAM_W_RES = 0x70003,
+        ReadRadarParameter = 0x70000,
+        ReadRadarParameterResponse = 0x70001,
+        WriteRadarParameter = 0x70002,
+        WriteRadarParameterResponse = 0x70003,
         // Battery1 ID
         Battery1ModuleIDBroadcasting = 0x11000,
         Battery1Info00 = 0x400,
@@ -377,88 +377,84 @@ public:
         Battery2Info06 = 0x456,
     };
 
-    typedef struct
-    {
-        uint8_t HMI[6];
-        uint8_t MCU[6];
-        uint8_t RRU[6];
-        uint8_t CWS[6];
-        uint8_t NU[6];
-    } S_VERSION;
+    // typedef struct
+    // {
+    //     uint8_t HMI[6];
+    //     uint8_t MCU[6];
+    //     uint8_t RRU[6];
+    //     uint8_t CWS[6];
+    //     uint8_t NU[6];
+    // } S_VERSION;
 
-    typedef struct
-    {
-        uint8_t assist;
-        uint16_t torque;
-        uint16_t cadence;
-        uint16_t speed;
-        uint8_t battery;
-    } S_MCU_DATA;
+    // typedef struct
+    // {
+    //     uint8_t assist;
+    //     uint16_t torque;
+    //     uint16_t cadence;
+    //     uint16_t speed;
+    //     uint8_t battery;
+    // } S_MCU_DATA;
 
-    typedef struct
-    {
-        uint8_t id;
-        uint16_t distance;
-        uint16_t speed;
-        int8_t angle;
-        uint8_t status_alarm_L;
-        uint8_t status_alarm_R;
-        uint8_t status_light;
-        uint16_t set_detect_range;
-        uint8_t set_bling_hz;
-    } S_RRU_DATA;
+    // typedef struct
+    // {
+    //     uint8_t id;
+    //     uint16_t distance;
+    //     uint16_t speed;
+    //     int8_t angle;
+    //     uint8_t status_alarm_L;
+    //     uint8_t status_alarm_R;
+    //     uint8_t status_light;
+    //     uint16_t set_detect_range;
+    //     uint8_t set_bling_hz;
+    // } S_RRU_DATA;
 
-    typedef struct
-    {
-        uint16_t distance;
-        int8_t angle;
+    // typedef struct
+    // {
+    //     uint16_t distance;
+    //     int8_t angle;
 
-        uint16_t set_detect_range;
-    } S_CWS_DATA;
+    //     uint16_t set_detect_range;
+    // } S_CWS_DATA;
 
-    typedef struct
-    {
-        float longitude;
-        float latitude;
-        uint16_t altitude;
-        uint16_t speed;
-        uint8_t status;
-    } S_NU_DATA;
+    // typedef struct
+    // {
+    //     float longitude;
+    //     float latitude;
+    //     uint16_t altitude;
+    //     uint16_t speed;
+    //     uint8_t status;
+    // } S_NU_DATA;
 
-    typedef struct {
-        uint8_t hr_status;
-        uint8_t hr_value;
-        uint8_t sport_mode;
-    } S_HMI_DATA;
+    // typedef struct {
+    //     uint8_t hr_status;
+    //     uint8_t hr_value;
+    //     uint8_t sport_mode;
+    // } S_HMI_DATA;
 
-    typedef struct {
-        uint8_t HMI;
-        uint8_t MCU;
-        uint8_t RRU;
-        uint8_t CWS;
-        uint8_t NU;
-    } S_ALL_DTC;
+    // typedef struct {
+    //     uint8_t HMI;
+    //     uint8_t MCU;
+    //     uint8_t RRU;
+    //     uint8_t CWS;
+    //     uint8_t NU;
+    // } S_ALL_DTC;
 
-    typedef struct {
-        S_VERSION ver;
-        S_MCU_DATA mcu;
-        S_RRU_DATA rru;
-        S_CWS_DATA cws;
-        S_NU_DATA nu;
-        S_HMI_DATA hmi;
-        S_ALL_DTC dtc;
-    } S_DATA;
+    // typedef struct {
+    //     S_VERSION ver;
+    //     S_MCU_DATA mcu;
+    //     S_RRU_DATA rru;
+    //     S_CWS_DATA cws;
+    //     S_NU_DATA nu;
+    //     S_HMI_DATA hmi;
+    //     S_ALL_DTC dtc;
+    // } S_DATA;
 
-    S_DATA sData;
+    // S_DATA sData;
 
     typedef enum {
         NONE = 2,
         ReadRadarParameters,
         REQ_ERC,
-        REQ_MCU_INFO,
-        REQ_RRU_INFO,
-        REQ_CWS_INFO,
-        REQ_NU_INFO,
         REQ_RRU_ID,
         RRU_UPDATE,
         SET_RRU_AWAKE,
@@ -470,7 +466,6 @@ public:
         GET_RRU,
         GET_CWS,
         GET_NU,
-        GET_DIAG,
         GET_TOOL_CTRL
     } REQ_type;
 
@@ -481,20 +476,13 @@ public:
 
 
 #ifdef node_RRU
-    bool RRUError(uint8_t ErrPage,uint8_t ErrCode);
-    bool RRU_Info(
+    bool radarErrorInfo(uint8_t ErrPage,uint8_t ErrCode);
+    bool radarInfo01(
         uint8_t id,
         uint16_t speed,
         uint16_t distance,
         uint8_t degree,
         uint8_t status);
-    bool RRU_version(
-        uint8_t protocol_major,
-        uint8_t protocol_minor,
-        uint8_t sw_major,
-        uint8_t sw_minor,
-        uint8_t hw_major,
-        uint8_t hw_minor);
 
     bool RRU_FWupdateRP(uint8_t dlc,uint8_t *payload);
     bool RadarModIDBroadcast();
@@ -537,22 +525,6 @@ public:
 #endif
 
 #ifdef node_NU
-
-    bool NUtoDIAG(uint8_t error);
-    bool NU_period1(
-        float longitude,
-        float latitude);
-    bool NU_period2(
-        uint16_t altitude,
-        uint16_t speed,
-        uint8_t status);
-    bool NU_version(
-        uint8_t protocol_major,
-        uint8_t protocol_minor,
-        uint8_t sw_major,
-        uint8_t sw_minor,
-        uint8_t hw_major,
-        uint8_t hw_minor);
 #endif
 };
 
