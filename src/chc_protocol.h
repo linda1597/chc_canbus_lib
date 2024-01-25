@@ -417,33 +417,6 @@ public:
         uint8_t sw_minor,
         uint8_t hw_major,
         uint8_t hw_minor);
-
-    bool RRU_FWupdateRP(uint8_t dlc,uint8_t *payload);
-    enum OPCode{
-        JumptoBootloader = 0x01,
-        JumptoApp,
-        MCUInfoRead,
-        FlashErase,
-        FlashProgram,
-        Writedata,
-        FlashVerify,
-        ParameterRead,
-        ParameterWrite,
-        LogRead,
-        LogClear,
-        SetShipMode
-    }; 
-
-    enum RPCode{
-        SUCCESS,
-        TimeOut,
-        InvalidAddress,
-        InvalidSize,
-        InvalidParameter,
-        CRCError,
-        Unknown,
-        Error
-    };
 #endif
 
 #ifdef node_CWS

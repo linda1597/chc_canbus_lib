@@ -10,8 +10,9 @@
 CAN_frame_t rx_msg;
 CAN_frame_t tx_msg;
 CHC_PROTOCOL_HYENA2 chcProtocol_hyena2;
+#ifdef node_NU
 CHC_PROTOCOL_HYENA2::U_BIKE_INFO u_bike_info;
-
+#endif
 CHC_PROTOCOL_HYENA2::CHC_PROTOCOL_HYENA2()
 {
     s_bike_parameters.u_modid.ID = 0x434843FFFFFFFFFF;
