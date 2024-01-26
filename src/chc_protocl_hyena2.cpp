@@ -15,7 +15,7 @@ CHC_PROTOCOL_HYENA2::U_BIKE_INFO u_bike_info;
 #endif
 CHC_PROTOCOL_HYENA2::CHC_PROTOCOL_HYENA2()
 {
-    s_bike_parameters.u_modid.ID = 0x434843FFFFFFFFFF;
+    s_bike_parameters.u_modid.ID = 0x397FB1100F02A10A;
     bfirstConsecutive = true;
     // 建構子
 }
