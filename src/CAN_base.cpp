@@ -8,12 +8,21 @@
 #endif
 
 #ifdef CAN_lib_2
-#include "CAN.h"
+// #include <CAN_config.h>
+// #include <ESP32CAN.h>
+CAN_device_t CAN_cfg;
+const int rx_queue_size = 10;
 #endif
 
-bool CAN_base_init(int pinCanRx, int pinCanTx)
+#ifdef CAN_lib_3
+#include <driver/can.h>
+
+#endif
+bool CAN_base_init(int pinCanRx, int pinCanTx, long baudrate)
 {
 #ifdef CAN_lib_1
+    twai_stop();
+    twai_driver_uninstall();
     twai_general_config_t g_config = TWAI_GENERAL_CONFIG_DEFAULT(
         (gpio_num_t)pinCanTx,
         (gpio_num_t)pinCanRx,
@@ -43,14 +52,55 @@ bool CAN_base_init(int pinCanRx, int pinCanTx)
 
 #endif
 #ifdef CAN_lib_2
-    CAN.setPins(pinCanRx, pinCanTx);
-    while (!CAN.begin(vCANbus_baudrate)) {
-        CAN_LOG_E("CAN BUS Shield init fail");
-        vTaskDelay(pdMS_TO_TICKS(1000));
-        return false;
+    ESP32Can.CANStop();
+    // long lBaudrate = 500000;
+    switch (baudrate) {
+    case 125000:
+        CAN_cfg.speed = CAN_SPEED_250KBPS;
+        break;
+    case 250000:
+        CAN_cfg.speed = CAN_SPEED_500KBPS;
+        break;
+    case 500000:
+        CAN_cfg.speed = CAN_SPEED_1000KBPS;
+        break;
+    default:
+        break;
     }
-    CAN_LOG_I("CAN BUS Shield init ok!");
+    CAN_cfg.tx_pin_id = (gpio_num_t)pinCanTx;
+    CAN_cfg.rx_pin_id = (gpio_num_t)pinCanRx;
+    CAN_cfg.rx_queue = xQueueCreate(rx_queue_size, sizeof(CAN_frame_t));
+    ESP32Can.CANInit();
     return true;
+#endif
+#ifdef CAN_lib_3
+    // Initialize configuration structures using macro initializers
+    can_general_config_t g_config = CAN_GENERAL_CONFIG_DEFAULT(
+        (gpio_num_t)pinCanRx,
+        (gpio_num_t)pinCanTx,
+        CAN_MODE_NORMAL);
+    can_timing_config_t t_config = CAN_TIMING_CONFIG_500KBITS();
+    can_filter_config_t f_config = CAN_FILTER_CONFIG_ACCEPT_ALL();
+
+    // Install CAN driver
+    if (can_driver_install(&g_config, &t_config, &f_config) == ESP_OK) {
+        // printf("Driver installed\n");
+        CAN_LOG_I("Driver installed");
+    } else {
+        // printf("Failed to install driver\n");
+        CAN_LOG_I("Failed to install driver")
+        return;
+    }
+
+    // Start CAN driver
+    if (can_start() == ESP_OK) {
+        // printf("Driver started\n");
+        CAN_LOG_I("Driver started");
+    } else {
+        // printf("Failed to start driver\n");
+        CAN_LOG_I("Failed to start driver");
+        return;
+    }
 #endif
 }
 
@@ -68,23 +118,29 @@ bool CAN_base_transmit(CAN_frame_t* CANFrame)
     return true;
 #endif
 #ifdef CAN_lib_2
-    CAN.beginPacket(
-        CANFrame->identifier,
-        CANFrame->data_length_code,
-        CANFrame->rtr);
-
-    CAN.write(CANFrame->data, CANFrame->data_length_code);
-
-    if (!CAN.endPacket()) {
-        CAN_LOG_E("send CAN Message . failed");
-        CAN.end();
-        vTaskDelay(pdMS_TO_TICKS(500));
-        if (!CAN.begin(vCANbus_baudrate)) {
-            CAN_LOG_I("CAN init failed ");
-        }
+    if (ESP32Can.CANWriteFrame(CANFrame) != 0)
         return false;
-    }
     return true;
+#endif
+#ifdef CAN_lib_3
+    // Configure message to transmit
+    can_message_t message;
+    message.identifier = CANFrame->identifier; // 0xAAAA;
+    message.flags = CANFrame->extd // CAN_MSG_FLAG_EXTD;
+                        message.data_length_code
+        = 4;
+    for (int i = 0; i < 4; i++) {
+        message.data[i] = 0;
+    }
+
+    // Queue message for transmission
+    if (can_transmit(&message, pdMS_TO_TICKS(1000)) == ESP_OK) {
+        // printf("Message queued for transmission\n");
+        CAN_LOG_I("Message queued for transmission");
+    } else {
+        // printf("Failed to queue message for transmission\n");
+        CAN_LOG_I("Failed to queue message for transmission");
+    }
 #endif
 }
 
@@ -106,18 +162,60 @@ bool CAN_base_receive(CAN_frame_t* CANFrame, long timeout_ms)
     return true;
 #endif
 #ifdef CAN_lib_2
-    int packetSize = CAN.parsePacket();
-    if (packetSize) {
-        CANFrame->identifier = CAN.packetId();
-        CANFrame->extd = CAN.packetExtended();
-        CANFrame->data_length_code = CAN.packetDlc();
-        CANFrame->rtr = CAN.packetRtr();
-        for (int i = 0; i < CANFrame->data_length_code; i++) {
-            CANFrame->data[i] = CAN.read();
+    if (xQueueReceive(CAN_cfg.rx_queue, CANFrame, 3 * portTICK_PERIOD_MS) == pdTRUE) {
+
+        if (CANFrame->FIR.B.FF == CAN_frame_std) {
+            CAN_LOG_I("New standard frame");
+        } else {
+            CAN_LOG_I("New extended frame");
         }
-        CAN_LOG_I("Received %d bytes", packetSize);
+
+        if (CANFrame->FIR.B.RTR == CAN_RTR) {
+            CAN_LOG_I(" RTR from 0x%08X, DLC %d\r\n",
+                CANFrame->MsgID,
+                CANFrame->FIR.B.DLC);
+        } else {
+            CAN_LOG(" from 0x%08X, DLC %d, Data ",
+                CANFrame->MsgID,
+                CANFrame->FIR.B.DLC);
+            for (int i = 0; i < CANFrame->FIR.B.DLC; i++) {
+                CAN_LOG_S("0x%02X ", CANFrame->data.u8[i]);
+            }
+            CAN_LOG_S("\n");
+        }
         return true;
     }
     return false;
+#endif
+#ifdef CAN_lib_3
+
+    // Wait for message to be received
+    can_message_t message;
+    // if (can_receive(&message, pdMS_TO_TICKS(10000)) == ESP_OK) {
+    if (can_receive(&message, pdMS_TO_TICKS(timeout_ms)) == ESP_OK) {
+        // printf("Message received\n");
+        CAN_LOG_I("Message received");
+    } else {
+        // printf("Failed to receive message\n");
+        CAN_LOG_I("Failed to receive message");
+        return;
+    }
+
+    // Process received message
+    if (message.flags & CAN_MSG_FLAG_EXTD) {
+        // printf("Message is in Extended Format\n");
+        CAN_LOG_I("Message is in Extended Format");
+    } else {
+        // printf("Message is in Standard Format\n");
+        CAN_LOG_I("Message is in Standard Format");
+    }
+    // printf("ID is %d\n", message.identifier);
+    CAN_LOG_I("ID is %d", message.identifier);
+    if (!(message.flags & CAN_MSG_FLAG_RTR)) {
+        for (int i = 0; i < message.data_length_code; i++) {
+            // printf("Data byte %d = %d\n", i, message.data[i]);
+            CAN_LOG_I("Data byte %d = %d", i, message.data[i]);
+        }
+    }
 #endif
 }
