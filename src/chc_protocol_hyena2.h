@@ -82,121 +82,120 @@
 #define CHC_PL_LOG_S(fmt, ...)
 #define CHC_PL_LOG_V(fmt, ...) ;
 #endif
-
+// ----------------------------------------------------------------
 class CHC_PROTOCOL_HYENA2 {
 public:
     CHC_PROTOCOL_HYENA2();
-    unsigned int cal_crc32(const unsigned char *buf, int len, unsigned int init);
-    
+    unsigned int cal_crc32(const unsigned char* buf, int len, unsigned int init);
+
     bool bfirstConsecutive;
     uint8_t operatingTime;
     uint8_t SME;
     uint16_t paramlength;
-    uint32_t startAddress;    
-    
+    uint32_t startAddress;
+
     typedef union {
         float var;
         uint8_t array[4];
     } U_float2bytes;
 
-    typedef union{
+    typedef union {
         uint64_t ID;
         uint8_t bytes[8];
-    }U_MODID;    
-    //U_PARAMETERS u_parameters;
+    } U_MODID;
+    // U_PARAMETERS u_parameters;
 
     typedef union {
         uint64_t ID;
         uint8_t bytes[8];
-    }U_BIKEID;
+    } U_BIKEID;
 
-    typedef union{
+    typedef union {
         uint32_t Date;
         uint8_t bytes[4];
-    }U_SOLDDATE;
+    } U_SOLDDATE;
 
-    typedef union{
+    typedef union {
         uint32_t Date;
         uint8_t bytes[4];
-    }U_ManufacturedDate;
+    } U_ManufacturedDate;
 
-    typedef union{
+    typedef union {
         uint16_t Version;
         uint8_t bytes[2];
-    }U_FW_VERSION;    
+    } U_FW_VERSION;
 
-    typedef union{
+    typedef union {
         uint16_t Version;
         uint8_t bytes[2];
-    }U_HW_VERSION;
+    } U_HW_VERSION;
 
-    typedef union{
-        //String part_nm;
+    typedef union {
+        // String part_nm;
         uint8_t bytes[24];
-    }U_PART_NM;
+    } U_PART_NM;
 
-    typedef union{
-        //String frame_nm;
+    typedef union {
+        // String frame_nm;
         uint8_t bytes[32];
-    }U_FRAME_NM;
+    } U_FRAME_NM;
 
-    typedef union{
+    typedef union {
         uint64_t test_result;
         uint8_t bytes[8];
-    }U_TEST_RESULT;
+    } U_TEST_RESULT;
 
-    typedef union{
+    typedef union {
         uint16_t bike_version;
         uint8_t bytes[2];
-    }U_BIKE_VERSION;
+    } U_BIKE_VERSION;
 
     // typedef union{
     //     uint8_t register_status;
     // }U_REGISTER_STATUS;
 
-    typedef union{
+    typedef union {
         uint16_t safety_version;
         uint8_t bytes[2];
-    }U_SAFETY_VERSION;
+    } U_SAFETY_VERSION;
 
-    typedef union{
+    typedef union {
         uint16_t supplier_code;
         uint8_t bytes[2];
-    }U_SUPPLIER_CODE;
+    } U_SUPPLIER_CODE;
 
-    typedef union{
+    typedef union {
         uint16_t custom_code;
         uint8_t bytes[2];
-    }U_CUSTOM_CODE;
+    } U_CUSTOM_CODE;
 
-    typedef union 
-    {
-        //String ble_name;
+    typedef union {
+        // String ble_name;
         uint8_t bytes[22];
-    }U_APP_BLE_NAME;
+    } U_APP_BLE_NAME;
 
-    typedef union{
+    typedef union {
         uint8_t bytes[22];
-    }U_BOOTLOADER_BLE_NAME;
+    } U_BOOTLOADER_BLE_NAME;
 
-    typedef union{
+    typedef union {
         uint16_t HW_K_version;
         uint8_t bytes[2];
-    }U_HW_K_VERSION;
+    } U_HW_K_VERSION;
 
-    typedef union{
+    typedef union {
         uint16_t K_version;
         uint8_t bytes[2];
-    }U_K_VERSION;
+    } U_K_VERSION;
 
-    typedef union{
+    typedef union {
         uint16_t bootloader_v;
         uint8_t bytes[2];
-    }U_BOOTLOADER_V;
+    } U_BOOTLOADER_V;
 
-    typedef union{
+    typedef union {
         uint8_t bytes[3];
-    }U_PARAM_VERSION;
+    } U_PARAM_VERSION;
 
     typedef struct //__attribute((__packed__))
     {
@@ -204,8 +203,8 @@ public:
         uint16_t frequency1;
         uint16_t frequency2;
         uint32_t warning_distance;
-    }S_RADAR_PARAMS;
-    //S_RADAR_PARAMS s_radar_params;
+    } S_RADAR_PARAMS;
+    // S_RADAR_PARAMS s_radar_params;
     uint8_t app_flag;
     typedef struct //__attribute((__packed__))
     {
@@ -234,98 +233,157 @@ public:
 #ifdef node_RRU
         S_RADAR_PARAMS s_radar_params;
 #endif
-    }S_BIKE_PARAMETERS;
+    } S_BIKE_PARAMETERS;
     S_BIKE_PARAMETERS s_bike_parameters;
 
 #ifdef node_NU
+    typedef enum {
+        EC_CONTROLLER,
+        EC_HMI,
+        EC_RADAR,
+        EC_FORK,
+        EC_IOT,
+        EC_E_LOCK,
+        EC_DROPPER,
+        EC_BATTERY,
+        EC_DERAILLEUR,
+        EC_BATTERY2,
+        _EC_COUNT,
+    } E_COMPONENT;
+    typedef enum {
+        ECI_MANUFACTURER,
+        ECI_PRODUCT,
+        ECI_MODEL,
+        ECI_HW_VER,
+        ECI_SW_VER,
+        ECI_PL_VER,
+        ECI_SN,
+        _ECI_COUNT,
+    } E_COMPONENT_INFO;
     typedef struct
     {
         uint8_t manufacturer;
+        uint8_t product;
         uint8_t model;
         uint8_t FWVersion;
         uint8_t HWVersion;
         uint8_t protocolVersion;
         uint8_t SN[3];
-        uint16_t errorCode;
-    }S_BASIC_INFO;
+        // uint16_t errorCode;
+    } S_BASIC_INFO;
 
-    typedef union
-    {
-        S_BASIC_INFO contents;
+    typedef union {
+        S_BASIC_INFO C;
         uint8_t bytes[sizeof(S_BASIC_INFO)];
-    }U_BASIC_INFO;
+    } U_BASIC_INFO;
+
+    /*
+         typedef union {
+            S_BASIC_INFO contents;
+            uint8_t bytes[sizeof(S_BASIC_INFO)];
+        } U_BASIC_INFO;
+    */
     // typedef struct
     // {
     //     S_BASIC_INFO s_radar_basic_info;
     //     uint16_t errorCode;
     // }S_RADAR_INFO;
-
     typedef struct
     {
-        U_BASIC_INFO u_fork_basic_info;
-        uint8_t suspensionLevel;
-    }S_FORK_INFO;
-
-    typedef struct
-    {
-        U_BASIC_INFO u_battery_basic_info;
-        uint32_t batteryPercent; // %
-        int8_t temperature1; // 
-        int8_t temperature2; // 
-        int8_t temperature3; // 
-        int8_t temperature4; // 
-        int8_t temperature5; // 
-        int8_t temperature6; // 
-        int8_t temperature7; // 
-        int8_t temperature8; // 
-        uint32_t voltage; // mV
-        int32_t current; // mA
-    }S_BATTERY_INFO;
-
-    typedef struct
-    {
-        U_BASIC_INFO u_controller_basic_info;
-        uint16_t bikeSpeed; //0.01 km/h
+        // U_BASIC_INFO uInfo;
+        U_BASIC_INFO uInfo;
+        uint16_t u16ErrorCode;
+        uint16_t bikeSpeed; // 0.01 km/h
         uint16_t torque;
         uint8_t lightStatus;
         uint8_t assistLevel;
-        uint32_t odo; //m
-        uint8_t estimatedRange; //km
-        uint16_t cadence; //0.025 RPM
-    }S_CONTROLLER_INFO;
-    
+        uint32_t odo; // m
+        uint8_t estimatedRange; // km
+        uint16_t cadence; // 0.025 RPM
+    } S_INFO_CONTROLLER;
     typedef struct
     {
-        U_BASIC_INFO u_derailleur_basic_info;
+        U_BASIC_INFO uInfo;
+        uint16_t u16ErrorCode;
+    } S_INFO_HMI;
+
+    typedef struct
+    {
+        U_BASIC_INFO uInfo;
+        uint16_t u16ErrorCode;
+    } S_INFO_RADAR;
+
+    typedef struct
+    {
+        U_BASIC_INFO uInfo;
+        uint16_t u16ErrorCode;
+        uint8_t suspensionLevel;
+    } S_INFO_FORK;
+
+    typedef struct
+    {
+        U_BASIC_INFO uInfo;
+        uint16_t u16ErrorCode;
+    } S_INFO_IOT;
+
+    typedef struct {
+        U_BASIC_INFO uInfo;
+        uint16_t u16ErrorCode;
+        uint8_t u8Status;
+    } S_INFO_E_LOCK;
+
+    typedef struct
+    {
+        U_BASIC_INFO uInfo;
+        uint16_t u16ErrorCode;
+    } S_INFO_DROPPER;
+
+    typedef struct
+    {
+        // U_BASIC_INFO uInfo;
+        U_BASIC_INFO uInfo;
+        uint16_t u16ErrorCode;
+        uint32_t batteryPercent; // %
+        int8_t temperature1; //
+        int8_t temperature2; //
+        int8_t temperature3; //
+        int8_t temperature4; //
+        int8_t temperature5; //
+        int8_t temperature6; //
+        int8_t temperature7; //
+        int8_t temperature8; //
+        uint32_t u32Voltage; // mV
+        int32_t i32Current; // mA
+    } S_INFO_BATTERY;
+
+    typedef struct
+    {
+        // U_BASIC_INFO uInfo;
+        U_BASIC_INFO uInfo;
+        uint16_t u16ErrorCode;
         uint8_t gearIndex;
-    }S_DERAILLEUR_INFO;
+    } S_INFO_DERAILLEUR;
 
-    typedef struct 
-    {
-        U_BASIC_INFO u_elock_basic_info;
-        uint8_t elockStatus;
-    }S_ELOCK_INFO;
+    typedef union {
+        S_INFO_CONTROLLER sController;
+        S_INFO_HMI sHmi;
+        S_INFO_RADAR sRadar;
+        S_INFO_FORK sFork;
+        S_INFO_IOT sIot;
+        S_INFO_E_LOCK sELock;
+        S_INFO_DROPPER sDropper;
+        S_INFO_BATTERY sBattery1;
+        S_INFO_BATTERY sBattery2;
+        S_INFO_DERAILLEUR sDerailleur;
+        S_BASIC_INFO sBasicInfo;
+        uint8_t bytes[sizeof(S_INFO_CONTROLLER)];
+    } U_BIKE_COMPONENT_INFO;
 
-    typedef struct
-    {
-        U_BASIC_INFO u_radar_info;
-        U_BASIC_INFO u_dropper_info;
-        U_BASIC_INFO u_hmi_info;
-        U_BASIC_INFO u_iot_info;
-        S_FORK_INFO s_fork_info;
-        S_BATTERY_INFO s_battery1_info;
-        S_BATTERY_INFO s_battery2_info;
-        S_CONTROLLER_INFO s_controller_info;
-        S_DERAILLEUR_INFO s_derailleur_info;
-        S_ELOCK_INFO s_elock_info;
-    }S_BIKE_INFO;
-
-    typedef union 
-    {
-        S_BIKE_INFO contents;
-        uint8_t bytes[sizeof(S_BIKE_INFO)];
-    }U_BIKE_INFO;   
-    
+    typedef union {
+        U_BIKE_COMPONENT_INFO components;
+        uint8_t bytes[sizeof(U_BIKE_COMPONENT_INFO)];
+    } U_BIKE_INFO;
+    U_BIKE_INFO u_bike[_EC_COUNT];
 #endif
     enum CAN_ID {
         // Console ID
@@ -342,9 +400,11 @@ public:
         ControllerInfo02 = 0x202,
         ControllerInfo03 = 0x203,
         ControllerErrorInfo = 0x209,
+
         // Derailleur ID
         DerailleurModuleIDBroadcasting = 0x1F000,
         DerailleurState = 0x650,
+
         // Dropper ID
         DropperModuleIDBroadcasting = 0x1B000,
         DropperErrorInfo = 0x559,
@@ -352,17 +412,17 @@ public:
         ForkModuleIDBroadcasting = 0x13500,
         ForkInfo01 = 0x751,
         ForkErrorInfo = 0x759,
-        // Radar ID        
-        UpdateRadarFW = 0x190,
-        UpdateRadarFWResponse = 0x191,
+        // Radar ID
+        RadarUpdateFW = 0x190,
+        RadarUpdateFWResponse = 0x191,
         RadarModuleIDBroadcast = 0x19000,
-        RequestRadarModuleIDBroadcast = 0x19001,
+        RadarModuleIDBroadcastRequest = 0x19001,
         RadarInfo01 = 0x701,
         RadarErrorInfo = 0x709,
-        ReadRadarParameter = 0x70000,
-        ReadRadarParameterResponse = 0x70001,
-        WriteRadarParameter = 0x70002,
-        WriteRadarParameterResponse = 0x70003,
+        RadarParameterRead = 0x70000,
+        RadarParameterReadResponse = 0x70001,
+        RadarParameterWrite = 0x70002,
+        RadarParameterWriteResponse = 0x70003,
         // Battery1 ID
         Battery1ModuleIDBroadcasting = 0x11000,
         Battery1Info00 = 0x400,
@@ -376,7 +436,11 @@ public:
         Battery2Info02 = 0x452,
         Battery2Info06 = 0x456,
     };
-
+    typedef struct {
+        uint8_t u8Connected;
+        long lLastTime;
+    } S_COMPONENT_CONNECTED;
+    S_COMPONENT_CONNECTED sDeviceConnected[_EC_COUNT];
     // typedef struct
     // {
     //     uint8_t HMI[6];
@@ -466,17 +530,14 @@ public:
         GET_RRU,
         GET_CWS,
         GET_NU,
-        GET_TOOL_CTRL
+        GET_TOOL_CTRL,
+        GET_COMPONENT,
     } REQ_type;
 
     REQ_type rx();
 
-
-
-
-
 #ifdef node_RRU
-    bool radarErrorInfo(uint8_t ErrPage,uint8_t ErrCode);
+    bool radarErrorInfo(uint8_t ErrPage, uint8_t ErrCode);
     bool radarInfo01(
         uint8_t id,
         uint16_t speed,
@@ -484,7 +545,7 @@ public:
         uint8_t degree,
         uint8_t status);
 
-    bool RRU_FWupdateRP(uint8_t dlc,uint8_t *payload);
+    bool RRU_FWupdateRP(uint8_t dlc, uint8_t* payload);
     bool RadarModIDBroadcast();
     bool RadarStartRead();
     bool rxReadRadarParamSingleFrame();
@@ -503,9 +564,9 @@ public:
         LogRead,
         LogClear,
         SetShipMode
-    }OPCode; 
+    } OPCode;
 
-    typedef enum{
+    typedef enum {
         SUCCESS,
         TimeOut,
         InvalidAddress,
@@ -520,8 +581,8 @@ public:
         Idle,
         Start,
         Concetutive,
-    }RWStatus;
-    //RWStatus rwStatus;
+    } RWStatus;
+    // RWStatus rwStatus;
 #endif
 
 #ifdef node_NU
