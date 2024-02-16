@@ -794,11 +794,10 @@ bool CHC_PROTOCOL::RRU_E(
     tx_msg.data[1] = speed;
     tx_msg.data[2] = speed >> 8;
     tx_msg.data[3] = distance;
-    tx_msg.data[4] = distance >> 8;    
+    tx_msg.data[4] = distance >> 8;
     tx_msg.data[5] = degree;
     tx_msg.data[6] = status;
     return CAN_base_transmit(&tx_msg);
-
 }
 
 /* 傳送警戒狀態、燈狀態

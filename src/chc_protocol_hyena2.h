@@ -364,6 +364,11 @@ public:
         uint8_t gearIndex;
     } S_INFO_DERAILLEUR;
 
+    typedef struct {
+        U_BASIC_INFO uInfo;
+        uint8_t bytes[sizeof(S_INFO_CONTROLLER)];
+    } S_INFO_BASIC_INFO;
+
     typedef union {
         S_INFO_CONTROLLER sController;
         S_INFO_HMI sHmi;
@@ -373,9 +378,11 @@ public:
         S_INFO_E_LOCK sELock;
         S_INFO_DROPPER sDropper;
         S_INFO_BATTERY sBattery1;
-        S_INFO_BATTERY sBattery2;
         S_INFO_DERAILLEUR sDerailleur;
-        S_BASIC_INFO sBasicInfo;
+        S_INFO_BATTERY sBattery2;
+        S_INFO_BASIC_INFO sBasic;
+        // S_BASIC_INFO sBasicInfo;
+        //
         uint8_t bytes[sizeof(S_INFO_CONTROLLER)];
     } U_BIKE_COMPONENT_INFO;
 
