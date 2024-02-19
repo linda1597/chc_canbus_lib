@@ -65,7 +65,7 @@ bool CAN_base_init(int pinCanRx, int pinCanTx, long baudrate)
 #ifdef CAN_lib_2
     static uint8_t canInitialized = 0;
     if (canInitialized == 1) {
-        ESP32Can.CANInit();
+        ESP32Can.CANStop();
     }
     // long lBaudrate = 500000;
     switch (baudrate) {

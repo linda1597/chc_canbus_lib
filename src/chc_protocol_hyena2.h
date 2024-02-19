@@ -40,6 +40,9 @@
 #define rx_forkErrorInfo
 #define rx_radarModuleIDBroadcasting
 #define rx_radarErrorInfo
+#define rx_chargerModuleIDBroadcasting
+#define rx_chargerErrorInfo
+
 #endif
 // ----------------------------------------------------------------
 
@@ -248,6 +251,7 @@ public:
         EC_BATTERY,
         EC_DERAILLEUR,
         EC_BATTERY2,
+        EC_CHARGER,
         _EC_COUNT,
     } E_COMPONENT;
     typedef enum {
@@ -263,10 +267,10 @@ public:
     typedef struct
     {
         uint8_t manufacturer;
-        uint8_t product;
-        uint8_t model;
-        uint8_t FWVersion;
+        uint8_t model : 4;
+        uint8_t product : 4;
         uint8_t HWVersion;
+        uint8_t FWVersion;
         uint8_t protocolVersion;
         uint8_t SN[3];
         // uint16_t errorCode;
@@ -291,6 +295,7 @@ public:
     typedef struct
     {
         // U_BASIC_INFO uInfo;
+        uint8_t u8Connected;
         U_BASIC_INFO uInfo;
         uint16_t u16ErrorCode;
         uint16_t bikeSpeed; // 0.01 km/h
@@ -303,18 +308,21 @@ public:
     } S_INFO_CONTROLLER;
     typedef struct
     {
+        uint8_t u8Connected;
         U_BASIC_INFO uInfo;
         uint16_t u16ErrorCode;
     } S_INFO_HMI;
 
     typedef struct
     {
+        uint8_t u8Connected;
         U_BASIC_INFO uInfo;
         uint16_t u16ErrorCode;
     } S_INFO_RADAR;
 
     typedef struct
     {
+        uint8_t u8Connected;
         U_BASIC_INFO uInfo;
         uint16_t u16ErrorCode;
         uint8_t suspensionLevel;
@@ -322,11 +330,13 @@ public:
 
     typedef struct
     {
+        uint8_t u8Connected;
         U_BASIC_INFO uInfo;
         uint16_t u16ErrorCode;
     } S_INFO_IOT;
 
     typedef struct {
+        uint8_t u8Connected;
         U_BASIC_INFO uInfo;
         uint16_t u16ErrorCode;
         uint8_t u8Status;
@@ -334,12 +344,14 @@ public:
 
     typedef struct
     {
+        uint8_t u8Connected;
         U_BASIC_INFO uInfo;
         uint16_t u16ErrorCode;
     } S_INFO_DROPPER;
 
     typedef struct
     {
+        uint8_t u8Connected;
         // U_BASIC_INFO uInfo;
         U_BASIC_INFO uInfo;
         uint16_t u16ErrorCode;
@@ -358,6 +370,7 @@ public:
 
     typedef struct
     {
+        uint8_t u8Connected;
         // U_BASIC_INFO uInfo;
         U_BASIC_INFO uInfo;
         uint16_t u16ErrorCode;
@@ -365,8 +378,15 @@ public:
     } S_INFO_DERAILLEUR;
 
     typedef struct {
+        uint8_t u8Connected;
         U_BASIC_INFO uInfo;
-        uint8_t bytes[sizeof(S_INFO_CONTROLLER)];
+        uint16_t u16ErrorCode;
+    } S_INFO_CHARGER;
+
+    typedef struct {
+        uint8_t u8Connected;
+        U_BASIC_INFO uInfo;
+        uint8_t bytes[sizeof(S_INFO_CONTROLLER) - sizeof(U_BASIC_INFO) - 1];
     } S_INFO_BASIC_INFO;
 
     typedef union {
@@ -380,6 +400,8 @@ public:
         S_INFO_BATTERY sBattery1;
         S_INFO_DERAILLEUR sDerailleur;
         S_INFO_BATTERY sBattery2;
+        S_INFO_CHARGER sCharger;
+
         S_INFO_BASIC_INFO sBasic;
         // S_BASIC_INFO sBasicInfo;
         //
@@ -393,58 +415,76 @@ public:
     U_BIKE_INFO u_bike[_EC_COUNT];
 #endif
     enum CAN_ID {
-        // Console ID
-        BikeControl00 = 0x300,
-        ToolControl00 = 0x309,
-        // elock ID
-        eLockInfo = 0x633,
-        // HMI ID
-        HMIModuleIDBroadcasting = 0x14001,
-        HMIErrorInfo = 0x329,
-        // Controller ID
-        ControllerModuleIDBroadcasting = 0x13000,
-        ControllerInfo01 = 0x201,
-        ControllerInfo02 = 0x202,
-        ControllerInfo03 = 0x203,
-        ControllerErrorInfo = 0x209,
-
-        // Derailleur ID
-        DerailleurModuleIDBroadcasting = 0x1F000,
-        DerailleurState = 0x650,
-
-        // Dropper ID
-        DropperModuleIDBroadcasting = 0x1B000,
-        DropperErrorInfo = 0x559,
-        // Fork ID
-        ForkModuleIDBroadcasting = 0x13500,
-        ForkInfo01 = 0x751,
-        ForkErrorInfo = 0x759,
-        // Radar ID
-        RadarUpdateFW = 0x190,
-        RadarUpdateFWResponse = 0x191,
-        RadarModuleIDBroadcast = 0x19000,
-        RadarModuleIDBroadcastRequest = 0x19001,
-        RadarInfo01 = 0x701,
-        RadarErrorInfo = 0x709,
-        RadarParameterRead = 0x70000,
-        RadarParameterReadResponse = 0x70001,
-        RadarParameterWrite = 0x70002,
-        RadarParameterWriteResponse = 0x70003,
         // Battery1 ID
         Battery1ModuleIDBroadcasting = 0x11000,
+        Battery1ModuleIDBroadcastingRequest = 0x11001,
         Battery1Info00 = 0x400,
         Battery1Info01 = 0x401,
         Battery1Info02 = 0x402,
         Battery1Info06 = 0x406,
         // Battery2 ID
         Battery2ModuleIDBroadcasting = 0x12000,
+        Battery2ModuleIDBroadcastingRequest = 0x12001,
         Battery2Info00 = 0x450,
         Battery2Info01 = 0x451,
         Battery2Info02 = 0x452,
         Battery2Info06 = 0x456,
+
+        // Console ID
+        BikeControl00 = 0x300,
+        ToolControl00 = 0x309,
+        // elock ID
+        eLockInfo = 0x633,
+        // Controller ID
+        ControllerModuleIDBroadcasting = 0x13000,
+        ControllerModuleIDBroadcastingRequest = 0x13001,
+        ControllerInfo01 = 0x201,
+        ControllerInfo02 = 0x202,
+        ControllerInfo03 = 0x203,
+        ControllerErrorInfo = 0x209,
+
+        // Fork ID
+        ForkModuleIDBroadcasting = 0x13500,
+        ForkModuleIDBroadcastingRequest = 0x13501,
+        ForkInfo01 = 0x751,
+        ForkErrorInfo = 0x759,
+
+        // HMI ID
+        HMIModuleIDBroadcasting = 0x14000,
+        HMIModuleIDBroadcastingRequest = 0x14001,
+
+        HMIErrorInfo = 0x329,
+
+        // Charger ID
+        ChargerModuleIDBroadcasting = 0x18000,
+        ChargerModuleIDBroadcastingRequest = 0x18001,
+        ChargerErrorInfo = 0x509,
+
+        // Radar ID
+        RadarModuleIDBroadcast = 0x19000,
+        RadarModuleIDBroadcastRequest = 0x19001,
+        RadarUpdateFW = 0x190,
+        RadarUpdateFWResponse = 0x191,
+        RadarInfo01 = 0x701,
+        RadarErrorInfo = 0x709,
+        RadarParameterRead = 0x70000,
+        RadarParameterReadResponse = 0x70001,
+        RadarParameterWrite = 0x70002,
+        RadarParameterWriteResponse = 0x70003,
+
+        // Dropper ID
+        DropperModuleIDBroadcasting = 0x1B000,
+        DropperModuleIDBroadcastingRequest = 0x1B001,
+        DropperErrorInfo = 0x559,
+
+        // Derailleur ID
+        DerailleurModuleIDBroadcasting = 0x1F000,
+        DerailleurModuleIDBroadcastingRequest = 0x1F001,
+        DerailleurState = 0x650,
+
     };
     typedef struct {
-        uint8_t u8Connected;
+        // uint8_t u8Connected;
         long lLastTime;
     } S_COMPONENT_CONNECTED;
     S_COMPONENT_CONNECTED sDeviceConnected[_EC_COUNT];

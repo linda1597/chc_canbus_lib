@@ -26,7 +26,7 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
     // ----------------- 以下為檢查連線狀態 -----------------
     for (int i = 0; i < CHC_PROTOCOL_HYENA2::_EC_COUNT; i++) {
         if ((millis() - sDeviceConnected[i].lLastTime) > 3000) {
-            sDeviceConnected[i].u8Connected = false;
+            u_bike[i].components.sBasic.u8Connected = 0x00;
             sDeviceConnected[i].lLastTime = millis();
         }
     }
@@ -34,8 +34,9 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
     if (CAN_base_receive(&rx_msg, 70) == false) {
         return NONE;
     }
-    CHC_PL_LOG("Received:");
+    CHC_PL_LOG("RX:");
 #ifdef CAN_lib_2
+    CHC_PL_LOG_S("ID: 0x%08X, DLC: %d, Data: ", rx_msg.MsgID, rx_msg.FIR.B.DLC);
     for (uint8_t i = 0; i < rx_msg.FIR.B.DLC; i++) {
         CHC_PL_LOG_S("%02X ", rx_msg.data.u8[i]);
     }
@@ -47,50 +48,53 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
     CHC_PL_LOG_S("\n");
     // ----------------- 以下為檢查連線狀態 -----------------
     switch (rx_msg.MsgID) {
-    case CHC_PROTOCOL_HYENA2::BikeControl00: // 0x100
-        break;
-        //
     case CHC_PROTOCOL_HYENA2::ToolControl00: // 0x200
         break;
         //
     case CHC_PROTOCOL_HYENA2::eLockInfo: // 0x633
 
-        sDeviceConnected[EC_E_LOCK].u8Connected = true;
+        u_bike[EC_E_LOCK].components.sBasic.u8Connected = 0x01;
         sDeviceConnected[EC_E_LOCK].lLastTime = millis();
         break;
         //
+    case CHC_PROTOCOL_HYENA2::BikeControl00: // 0x300
     case CHC_PROTOCOL_HYENA2::HMIModuleIDBroadcasting: // 0x14001
+    case CHC_PROTOCOL_HYENA2::HMIModuleIDBroadcastingRequest: // 0x14001
     case CHC_PROTOCOL_HYENA2::HMIErrorInfo: // 0x329
-        sDeviceConnected[EC_HMI].u8Connected = true;
+        u_bike[EC_HMI].components.sBasic.u8Connected = 0x01;
         sDeviceConnected[EC_HMI].lLastTime = millis();
         break;
         //
     case CHC_PROTOCOL_HYENA2::ControllerModuleIDBroadcasting: // 0x13000
+    case CHC_PROTOCOL_HYENA2::ControllerModuleIDBroadcastingRequest: // 0x13001
     case CHC_PROTOCOL_HYENA2::ControllerInfo01: // 0x201
     case CHC_PROTOCOL_HYENA2::ControllerInfo02: // 0x202
     case CHC_PROTOCOL_HYENA2::ControllerInfo03: // 0x203
     case CHC_PROTOCOL_HYENA2::ControllerErrorInfo: // 0x209
-        sDeviceConnected[EC_CONTROLLER].u8Connected = true;
+        u_bike[EC_CONTROLLER].components.sBasic.u8Connected = 0x01;
         sDeviceConnected[EC_CONTROLLER].lLastTime = millis();
         break;
 
         //
     case CHC_PROTOCOL_HYENA2::DerailleurModuleIDBroadcasting: // 0x1F000
+    case CHC_PROTOCOL_HYENA2::DerailleurModuleIDBroadcastingRequest: // 0x1F000
     case CHC_PROTOCOL_HYENA2::DerailleurState: // 0x650
-        sDeviceConnected[EC_DERAILLEUR].u8Connected = true;
+        u_bike[EC_DERAILLEUR].components.sBasic.u8Connected = 0x01;
         sDeviceConnected[EC_DERAILLEUR].lLastTime = millis();
         break;
         //
     case CHC_PROTOCOL_HYENA2::DropperModuleIDBroadcasting: // 0x1B000
+    case CHC_PROTOCOL_HYENA2::DropperModuleIDBroadcastingRequest: // 0x1B000
     case CHC_PROTOCOL_HYENA2::DropperErrorInfo: // 0x559
-        sDeviceConnected[EC_DROPPER].u8Connected = true;
+        u_bike[EC_DROPPER].components.sBasic.u8Connected = 0x01;
         sDeviceConnected[EC_DROPPER].lLastTime = millis();
         break;
         //
     case CHC_PROTOCOL_HYENA2::ForkModuleIDBroadcasting: // 0x13500
+    case CHC_PROTOCOL_HYENA2::ForkModuleIDBroadcastingRequest: // 0x13500
     case CHC_PROTOCOL_HYENA2::ForkInfo01: // 0x751
     case CHC_PROTOCOL_HYENA2::ForkErrorInfo: // 0x759
-        sDeviceConnected[EC_FORK].u8Connected = true;
+        u_bike[EC_FORK].components.sBasic.u8Connected = 0x01;
         sDeviceConnected[EC_FORK].lLastTime = millis();
         break;
         //
@@ -104,22 +108,26 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
     case CHC_PROTOCOL_HYENA2::RadarParameterReadResponse: //  = 0x70001,
     case CHC_PROTOCOL_HYENA2::RadarParameterWrite: //  = 0x70002,
     case CHC_PROTOCOL_HYENA2::RadarParameterWriteResponse: //  = 0x70003        break;
-        sDeviceConnected[EC_RADAR].u8Connected = true;
+        u_bike[EC_RADAR].components.sBasic.u8Connected = 0x01;
         sDeviceConnected[EC_RADAR].lLastTime = millis();
         break;
         //
     case CHC_PROTOCOL_HYENA2::Battery1ModuleIDBroadcasting: // 0x11000
+    case CHC_PROTOCOL_HYENA2::Battery1ModuleIDBroadcastingRequest: // 0x11000
     case CHC_PROTOCOL_HYENA2::Battery1Info01: // 0x401
     case CHC_PROTOCOL_HYENA2::Battery1Info02: // 0x402
     case CHC_PROTOCOL_HYENA2::Battery1Info06: // 0x406
-        sDeviceConnected[EC_BATTERY].u8Connected = true;
+        u_bike[EC_BATTERY].components.sBasic.u8Connected = 0x01;
         sDeviceConnected[EC_BATTERY].lLastTime = millis();
         break;
         //
     case CHC_PROTOCOL_HYENA2::Battery2ModuleIDBroadcasting: // 0x11000
+    case CHC_PROTOCOL_HYENA2::Battery2ModuleIDBroadcastingRequest: // 0x11000
     case CHC_PROTOCOL_HYENA2::Battery2Info01: // 0x451
     case CHC_PROTOCOL_HYENA2::Battery2Info02: // 0x452
     case CHC_PROTOCOL_HYENA2::Battery2Info06: // 0x456
+        u_bike[EC_BATTERY2].components.sBasic.u8Connected = 0x01;
+        sDeviceConnected[EC_BATTERY2].lLastTime = millis();
         break;
 
     default:
@@ -133,14 +141,14 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
 #endif
         // HMI ID --------------------------------
 #ifdef rx_HMIModuleIDBroadcasting
-    case CHC_PROTOCOL_HYENA2::HMIModuleIDBroadcasting: // 0x14001
+    case CHC_PROTOCOL_HYENA2::HMIModuleIDBroadcasting: // 0x14000
         for (uint8_t i = 0; i < 8; i++) {
 #ifdef CAN_lib_2
             //     u_bike_info.components.sHmi.bytes[i] = rx_msg.data.u8[i];
-            u_bike[EC_CONTROLLER].components.sHmi.uInfo.bytes[i] = rx_msg.data.u8[i];
+            u_bike[EC_HMI].components.sHmi.uInfo.bytes[i] = rx_msg.data.u8[i];
 #else
             //     u_bike_info.contents.u_hmi_info.bytes[i] = rx_msg.data[i];
-            u_bike[EC_CONTROLLER].components.sHmi.uInfo.bytes[i] = rx_msg.data[i];
+            u_bike[EC_HMI].components.sHmi.uInfo.bytes[i] = rx_msg.data[i];
 #endif
         }
         break;
@@ -225,6 +233,7 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
 #ifdef rx_controllerModuleIDBroadcasting
     case CHC_PROTOCOL_HYENA2::ControllerModuleIDBroadcasting: // 0x13000
         for (uint8_t i = 0; i < 8; i++) {
+
 #ifdef CAN_lib_2
             u_bike[EC_CONTROLLER].components.sController.uInfo.bytes[i] = rx_msg.data.u8[i];
 #else
@@ -534,8 +543,41 @@ CHC_PROTOCOL_HYENA2::REQ_type CHC_PROTOCOL_HYENA2::rx()
         // return GET_RRU;
         break;
 #endif
+
+#ifdef rx_radarModuleIDBroadcasting
+    case CHC_PROTOCOL_HYENA2::RadarModuleIDBroadcast:
+        for (uint8_t i = 0; i < 8; i++) {
+#ifdef CAN_lib_2
+            u_bike[EC_RADAR].components.sRadar.uInfo.bytes[i] = rx_msg.data.u8[i];
+#else
+            u_bike[EC_RADAR].components.sRadar.uInfo.bytes[0] = rx_msg.data[0];
+#endif
+        }
+        break;
+#endif
         // ----------------------------------------------------------------
-        // ----------------------------------------------------------------
+#ifdef rx_chargerModuleIDBroadcasting
+    case CHC_PROTOCOL_HYENA2::ChargerModuleIDBroadcasting: // 0x12000
+        for (uint8_t i = 0; i < 8; i++) {
+#ifdef CAN_lib_2
+            u_bike[EC_CHARGER].components.sCharger.uInfo.bytes[i] = rx_msg.data.u8[i];
+#else
+            u_bike[EC_CHARGER].components.sCharger.uInfo.bytes[i] = rx_msg.data[i];
+#endif
+        }
+        break;
+#endif
+
+#ifdef rx_chargerErrorInfo
+    case CHC_PROTOCOL_HYENA2::ChargerErrorInfo: // 0x809
+#ifdef CAN_lib_2
+        u_bike[EC_CHARGER].components.sCharger.u16ErrorCode = (uint16_t)rx_msg.data.u8[0] | (rx_msg.data.u8[1] << 8);
+#else
+        u_bike[EC_CHARGER].components.sCharger.u16ErrorCode = (uint16_t)rx_msg.data[0] | (rx_msg.data[1] << 8);
+#endif
+        break;
+#endif
+
     default:
         return PROCESS_DONE;
         break;
