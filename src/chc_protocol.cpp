@@ -7,8 +7,8 @@
 // String err_s;
 // twai_message_t rx_frame;
 // twai_message_t message;
-CAN_frame_t rx_frame;
-CAN_frame_t tx_frame;
+CAN_frame_tt rx_frame;
+CAN_frame_tt tx_frame;
 CHC_PROTOCOL chcProtocol;
 
 CHC_PROTOCOL::CHC_PROTOCOL()
@@ -786,18 +786,18 @@ bool CHC_PROTOCOL::RRU_E(
     uint8_t degree,
     uint8_t status)
 {
-    tx_msg.identifier = RRU_INFO;
-    tx_msg.extd = 0;
-    tx_msg.rtr = 0;
-    tx_msg.data_length_code = 6;
-    tx_msg.data[0] = id;
-    tx_msg.data[1] = speed;
-    tx_msg.data[2] = speed >> 8;
-    tx_msg.data[3] = distance;
-    tx_msg.data[4] = distance >> 8;    
-    tx_msg.data[5] = degree;
-    tx_msg.data[6] = status;
-    return CAN_base_transmit(&tx_msg);
+    tx_frame.identifier = RRU_INFO;
+    tx_frame.extd = 0;
+    tx_frame.rtr = 0;
+    tx_frame.data_length_code = 6;
+    tx_frame.data[0] = id;
+    tx_frame.data[1] = speed;
+    tx_frame.data[2] = speed >> 8;
+    tx_frame.data[3] = distance;
+    tx_frame.data[4] = distance >> 8;    
+    tx_frame.data[5] = degree;
+    tx_frame.data[6] = status;
+    return CAN_base_transmit(&tx_frame);
 
 }
 

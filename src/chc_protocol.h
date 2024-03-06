@@ -471,7 +471,7 @@ public:
 #endif
 };
 
-extern CAN_frame_t rx_msg;
+//extern CAN_frame_tt rx_msg;
 extern CHC_PROTOCOL chcProtocol;
 
 #endif

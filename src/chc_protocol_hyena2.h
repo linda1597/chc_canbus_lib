@@ -528,7 +528,7 @@ public:
 #endif
 };
 
-extern CAN_frame_t rx_msg;
+extern CAN_frame_tt rx_msg;
 extern CHC_PROTOCOL_HYENA2 chcProtocol_hyena2;
 
 #endif

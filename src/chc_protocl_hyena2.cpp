@@ -7,8 +7,8 @@
 // String err_s;
 // twai_message_t rx_msg;
 // twai_message_t message;
-CAN_frame_t rx_msg;
-CAN_frame_t tx_msg;
+CAN_frame_tt rx_msg;
+CAN_frame_tt tx_msg;
 CHC_PROTOCOL_HYENA2 chcProtocol_hyena2;
 #ifdef node_NU
 CHC_PROTOCOL_HYENA2::U_BIKE_INFO u_bike_info;

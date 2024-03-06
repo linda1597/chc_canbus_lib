@@ -1,7 +1,7 @@
 #include "chc_protocol_hyena.h"
 #include "CAN_base.h"
-CAN_frame_t rx_frame;
-CAN_frame_t tx_frame;
+CAN_frame_tt rx_frame;
+CAN_frame_tt tx_frame;
 
 CHC_PROTOCOL_HYENA chcProtocol_hyena;
 

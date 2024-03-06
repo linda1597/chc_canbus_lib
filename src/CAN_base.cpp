@@ -104,7 +104,7 @@ bool CAN_base_init(int pinCanRx, int pinCanTx, long baudrate)
 #endif
 }
 
-bool CAN_base_transmit(CAN_frame_t* CANFrame)
+bool CAN_base_transmit(CAN_frame_tt* CANFrame)
 {
 #ifdef CAN_lib_1
     esp_err_t err = twai_transmit((twai_message_t*)CANFrame, 0);
@@ -144,7 +144,7 @@ bool CAN_base_transmit(CAN_frame_t* CANFrame)
 #endif
 }
 
-bool CAN_base_receive(CAN_frame_t* CANFrame, long timeout_ms)
+bool CAN_base_receive(CAN_frame_tt* CANFrame, long timeout_ms)
 {
 #ifdef CAN_lib_1
     esp_err_t err = twai_receive((twai_message_t*)CANFrame, timeout_ms);
